@@ -21,7 +21,7 @@ local waypoint = nil
 local teleportCooldown = false
 local dashCooldown = false
 local teleportEnabled = false
-local teleportEnabled_2 = false
+local dashEnabled_2 = false
 
 
 -- [GUI Creation]
@@ -74,8 +74,8 @@ local function createFlightGui()
 	button.Parent = gui  
 
 	button.MouseButton1Click:Connect(function()  
-		teleportEnabled_2 = not teleportEnabled_2  
-		if teleportEnabled_2 then  
+		dashEnabled_2 = not dashEnabled_2  
+		if dashEnabled_2 then  
 			button.Text = "Fly: ON"  
 			button.BackgroundColor3 = Color3.fromRGB(0, 170, 0)  
 		else  
@@ -147,7 +147,7 @@ end
 
 -- [Target Detection]
 local function updateRaycast()
-	if teleportEnabled or teleportEnabled_2 then
+	if teleportEnabled or dashEnabled_2 then
 		local character = player.Character
 		if not character or not character:FindFirstChild("HumanoidRootPart") then return end
 		local origin = Camera.CFrame.Position
@@ -208,7 +208,7 @@ end
 
 -- [Dash Function]
 local function dashToTarget()
-	if not teleportEnabled_2 or dashCooldown or not currentTarget then return end
+	if not dashEnabled_2 or dashCooldown or not currentTarget then return end
 	dashCooldown = true
 
 	local character = player.Character
@@ -245,6 +245,49 @@ local function dashToTarget()
 	dashCooldown = false
 end
 
+local function tpAndDash()
+	if not dashEnabled_2 or not dashEnabled or dashCooldown or not currentTarget then return end
+	dashCooldown = true
+
+	local character = player.Character
+	local hrp = character and character:FindFirstChild("HumanoidRootPart")
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if not hrp or not humanoid then dashCooldown = false return end
+
+	local startPosition = hrp.Position -- Save current position
+
+	local targetHRP = currentTarget:FindFirstChild("HumanoidRootPart")
+	if not targetHRP then dashCooldown = false return end
+
+	local direction = (targetHRP.Position - hrp.Position)
+	local distance = direction.Magnitude
+	local normalizedDir = direction.Unit
+
+	local bv = Instance.new("BodyVelocity")
+	bv.MaxForce = Vector3.new(1, 1, 1) * 1e5
+	bv.Velocity = normalizedDir * MAX_DASH_SPEED
+	bv.Parent = hrp
+
+	humanoid.AutoRotate = false
+	local timeout = distance / MAX_DASH_SPEED + 0.1
+	local start = tick()
+
+	while tick() - start < timeout do
+		if not currentTarget or not character or not hrp or not targetHRP then break end
+		if (targetHRP.Position - hrp.Position).Magnitude <= STOP_DISTANCE then break end
+		RunService.Heartbeat:Wait()
+	end
+
+	bv:Destroy()
+	humanoid.AutoRotate = true
+
+	task.wait(0.1) -- slight delay before teleport
+	hrp.CFrame = CFrame.new(startPosition) -- Teleport back
+
+	task.wait(COOLDOWN)
+	dashCooldown = false
+end
+
 -- [Startup]
 createCrosshair()
 createTeleportGui()
@@ -259,11 +302,16 @@ end)
 -- [Touch Input Fix]
 UIS.TouchTap:Connect(function(touchPositions, processed)
 	if not processed then
-		if teleportEnabled then
-			teleportToTarget()
-		end
-		if teleportEnabled_2 then
-			dashToTarget()
+
+		if teleportEnabled and dashEnabled_2 then
+			tpAndDash()
+		else
+			if teleportEnabled then
+				teleportToTarget()
+			end
+			if dashEnabled_2 then
+				dashToTarget()
+			end
 		end
 	end
 end)
