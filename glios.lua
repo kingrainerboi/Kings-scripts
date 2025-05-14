@@ -252,33 +252,30 @@ local function createCrosshair()
 	
 	end
 
-	local function softLockCamera(dt)
-		if currentTarget and currentTarget:FindFirstChild("HumanoidRootPart") and cameraAssistEnabled then
-			local camCF = Camera.CFrame
-			local camPos = camCF.Position
-			local targetPos = currentTarget.HumanoidRootPart.Position
+	local function softLockCamera()
+		if not currentTarget or not currentTarget:FindFirstChild("HumanoidRootPart") then
+			RunService:UnbindFromRenderStep("SoftCameraLock")
+			return
+		end
 	
-			-- Vector from camera to target
-			local toTarget = (targetPos - camPos).Unit
+		local camCF = Camera.CFrame
+		local camPos = camCF.Position
+		local rootPos = currentTarget.HumanoidRootPart.Position
 	
-			-- Current LookVector
-			local currentLook = camCF.LookVector
+		local targetDirection = (rootPos - camPos).Unit
+		local newDirection = camCF.LookVector:Lerp(targetDirection, cameraAssistStrength)
 	
-			-- Interpolate between current and desired direction
-			local newLook = currentLook:Lerp(toTarget, cameraAssistStrength)
-	
-			-- Apply a new CFrame that keeps current position but nudges the rotation
-			local newCFrame = CFrame.new(camPos, camPos + newLook)
-			Camera.CFrame = newCFrame
+		if (camCF.LookVector - newDirection).Magnitude > 0.01 then
+			Camera.CFrame = CFrame.new(camPos, camPos + newDirection)
 		end
 	end
-
 	local function updateCameraAssist()
 		cameraAssistEnabled = currentTarget ~= nil
 	end
 
-	RunService.RenderStepped:Connect(softLockCamera)
-
+	RunService:BindToRenderStep("SoftCameraLock", Enum.RenderPriority.Camera.Value + 1, function()
+		softLockCamera()
+	end)
 	
 	
 -- [Teleport Function]
