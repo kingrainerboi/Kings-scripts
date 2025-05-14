@@ -415,8 +415,3 @@ UIS.TouchTap:Connect(function(touchPositions, processed)
 end)
 
 -- flight
-if flightEnabled_3 then
-	startFlight()
-else
-	stopFlight()
-end
