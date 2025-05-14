@@ -475,13 +475,7 @@ end)
 UIS.TouchTap:Connect(function(touchPositions, processed)
 	if not processed then
 
-		if flightEnabled_3 and dashEnabled_2  then
-			flightdash = true
-			Dash2()
-		else 
-			flightdash = false
-		end
-
+		
 
 
 		if teleportEnabled and dashEnabled_2 then
@@ -495,6 +489,17 @@ UIS.TouchTap:Connect(function(touchPositions, processed)
 			end
 		end
 	end
+end)
+
+RunService.Heartbeat:Connect(function()
+	if flightEnabled_3 and dashEnabled_2  then
+		flightdash = true
+		Dash2()
+	else 
+		flightdash = false
+	end
+
+	
 end)
 
 -- flight
