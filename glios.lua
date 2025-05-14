@@ -246,7 +246,7 @@ local function dashToTarget()
 end
 
 local function tpAndDash()
-	if not dashEnabled_2 or not dashEnabled or dashCooldown or not currentTarget then return end
+	if not dashEnabled_2 or dashCooldown or not currentTarget then return end
 	dashCooldown = true
 
 	local character = player.Character
@@ -263,6 +263,7 @@ local function tpAndDash()
 	local distance = direction.Magnitude
 	local normalizedDir = direction.Unit
 
+	-- Dash Movement
 	local bv = Instance.new("BodyVelocity")
 	bv.MaxForce = Vector3.new(1, 1, 1) * 1e5
 	bv.Velocity = normalizedDir * MAX_DASH_SPEED
@@ -282,7 +283,7 @@ local function tpAndDash()
 	humanoid.AutoRotate = true
 
 	task.wait(0.1) -- slight delay before teleport
-	hrp.CFrame = CFrame.new(startPosition) -- Teleport back
+	hrp.CFrame = CFrame.new(startPosition) -- Teleport back to original position
 
 	task.wait(COOLDOWN)
 	dashCooldown = false
