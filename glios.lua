@@ -193,7 +193,11 @@ local function getRayDirections()
 	}
 end
 
-
+local function debugRay(origin, direction, color)
+	local rayLength = direction.Magnitude
+	local ray = Ray.new(origin, direction)
+	workspace:DebugDrawRay(ray, color or Color3.new(1, 0, 0)) -- red line by default
+end
 local function getClosestRaycastTarget()
 	local origin = Camera.CFrame.Position
 	local directions = getRayDirections()
@@ -202,6 +206,8 @@ local function getClosestRaycastTarget()
 	rayParams.FilterType = Enum.RaycastFilterType.Whitelist
 	rayParams.FilterDescendantsInstances = {workspace} -- Customize this as needed
 	rayParams.IgnoreWater = true
+
+	
 
 	local closestHit = nil
 	local closestDistance = math.huge
@@ -227,6 +233,8 @@ local function getClosestRaycastTarget()
 
 	return nil
 end
+
+
 -- [Target Detection]
 -- Update raycast for target detection
 local function updateRaycast()
@@ -240,6 +248,8 @@ local function updateRaycast()
         -- Raycasting in multiple directions for better target detection
         for _, direction in ipairs(getRayDirections()) do
             local result = workspace:Raycast(origin, direction * RAY_DISTANCE, rayParams)
+			local Fdir = direction * 1000
+			debugRay(origin,Fdir)
             if result and result.Instance then
                 local hitCharacter = result.Instance:FindFirstAncestorOfClass("Model")
                 local hitPlayer = Players:GetPlayerFromCharacter(hitCharacter)
