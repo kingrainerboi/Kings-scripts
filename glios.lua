@@ -114,53 +114,58 @@ baseDir,
 end
 -- RAYCAST
 local function updateRaycast()
-local character = player.Character
-if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-local origin = Camera.CFrame.Position
-local rayParams = RaycastParams.new()
-rayParams.FilterType = Enum.RaycastFilterType.Exclude
-rayParams.FilterDescendantsInstances = {character}
-rayParams.IgnoreWater = true
-for _, direction in ipairs(getRayDirections()) do
-local result = workspace:Raycast(origin, direction * RAY_DISTANCE, rayParams)
-if result and result.Instance then
-local hitCharacter = result.Instance:FindFirstAncestorOfClass("Model")
-local hitPlayer = Players:GetPlayerFromCharacter(hitCharacter)
-if hitPlayer and hitPlayer ~= player then if currentTarget ~= hitCharacter then currentTarget = hitCharacter createOutline(currentTarget) end return end 
-end
-end
-currentTarget = nil
-removeOutline()
+if teleportEnabled then 
+	local character = player.Character
+	if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+	local origin = Camera.CFrame.Position
+	local rayParams = RaycastParams.new()
+	rayParams.FilterType = Enum.RaycastFilterType.Exclude
+	rayParams.FilterDescendantsInstances = {character}
+	rayParams.IgnoreWater = true
+	for _, direction in ipairs(getRayDirections()) do
+	local result = workspace:Raycast(origin, direction * RAY_DISTANCE, rayParams)
+	if result and result.Instance then
+	local hitCharacter = result.Instance:FindFirstAncestorOfClass("Model")
+	local hitPlayer = Players:GetPlayerFromCharacter(hitCharacter)
+	if hitPlayer and hitPlayer ~= player then if currentTarget ~= hitCharacter then currentTarget = hitCharacter createOutline(currentTarget) end return end 
+	end
+	end
+	currentTarget = nil
+	removeOutline()
+	end
 end
 -- TELEPORT
 function teleportToTarget()
-teleportCooldown = true
-local character = player.Character
-if not character then return end
-local hrp = character:FindFirstChild("HumanoidRootPart")
-local humanoid = character:FindFirstChildOfClass("Humanoid")
-if not hrp or not humanoid then return end
-local targetHRP = currentTarget:FindFirstChild("HumanoidRootPart")
-if not targetHRP then return end
-local targetLookVector = targetHRP.CFrame.LookVector
-local targetPositionBehind = targetHRP.Position - targetLookVector * TELEPORT_DISTANCE
-if waypoint then
-waypoint:Destroy()
+if teleportEnabled then 
+	teleportCooldown = true
+	local character = player.Character
+	if not character then return end
+	local hrp = character:FindFirstChild("HumanoidRootPart")
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not hrp or not humanoid then return end
+	local targetHRP = currentTarget:FindFirstChild("HumanoidRootPart")
+	if not targetHRP then return end
+	local targetLookVector = targetHRP.CFrame.LookVector
+	local targetPositionBehind = targetHRP.Position - targetLookVector * TELEPORT_DISTANCE
+	if waypoint then
+	waypoint:Destroy()
+	end
+	waypoint = Instance.new("Part")
+	waypoint.Size = Vector3.new(1, 1, 1)
+	waypoint.Position = targetPositionBehind
+	waypoint.Anchored = true
+	waypoint.CanCollide = false
+	waypoint.Material = Enum.Material.Neon
+	waypoint.Color = Color3.fromRGB(255, 0, 0)
+	waypoint.Parent = workspace
+	hrp.CFrame = CFrame.new(targetPositionBehind, targetHRP.Position)
+	humanoid.AutoRotate = false
+	task.wait(COOLDOWN)
+	teleportCooldown = false
+	humanoid.AutoRotate = true
+	end
 end
-waypoint = Instance.new("Part")
-waypoint.Size = Vector3.new(1, 1, 1)
-waypoint.Position = targetPositionBehind
-waypoint.Anchored = true
-waypoint.CanCollide = false
-waypoint.Material = Enum.Material.Neon
-waypoint.Color = Color3.fromRGB(255, 0, 0)
-waypoint.Parent = workspace
-hrp.CFrame = CFrame.new(targetPositionBehind, targetHRP.Position)
-humanoid.AutoRotate = false
-task.wait(COOLDOWN)
-teleportCooldown = false
-humanoid.AutoRotate = true
-end
+
 -- STARTUP
 createCrosshair()
 createTeleportGui()
