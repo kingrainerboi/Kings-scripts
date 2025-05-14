@@ -14,7 +14,7 @@ local RunService = game:GetService("RunService")
 local player = game.Players.LocalPlayer
 
 local cameraAssistEnabled = false
-local cameraAssistStrength = 0.5 -- How fast the camera centers toward the target
+local cameraAssistStrength = 2.5 -- How fast the camera centers toward the target
 
 -- [Player & Settings]
 local player = Players.LocalPlayer
@@ -273,12 +273,14 @@ local function createCrosshair()
 		end
 	end
 
-	RunService.RenderStepped:Connect(softLockCamera)
-
 	local function updateCameraAssist()
 		cameraAssistEnabled = currentTarget ~= nil
 	end
 
+	RunService.RenderStepped:Connect(softLockCamera)
+
+	
+	
 -- [Teleport Function]
 function teleportToTarget()
 	if teleportCooldown or not teleportEnabled or not currentTarget then return end
