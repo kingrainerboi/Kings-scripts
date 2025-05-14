@@ -183,7 +183,7 @@ local function getRayDirections()
 	local baseDir = Camera.CFrame.LookVector
 	local rightVec = Camera.CFrame.RightVector
 	local upVec = Camera.CFrame.UpVector
-	local offset = math.tan(degToRad(RAY_ANGLE_OFFSET))
+	local offset = math.tan(degToRad(RAY_ANGLE_OFFSET or 5))
 	return {
 		baseDir,
 		(baseDir + rightVec * offset).Unit,
@@ -193,6 +193,40 @@ local function getRayDirections()
 	}
 end
 
+
+local function getClosestRaycastTarget()
+	local origin = Camera.CFrame.Position
+	local directions = getRayDirections()
+
+	local rayParams = RaycastParams.new()
+	rayParams.FilterType = Enum.RaycastFilterType.Whitelist
+	rayParams.FilterDescendantsInstances = {workspace} -- Customize this as needed
+	rayParams.IgnoreWater = true
+
+	local closestHit = nil
+	local closestDistance = math.huge
+
+	for _, direction in ipairs(directions) do
+		local result = workspace:Raycast(origin, direction * 1000, rayParams)
+		if result then
+			local distance = (origin - result.Position).Magnitude
+			if distance < closestDistance then
+				closestDistance = distance
+				closestHit = result
+			end
+		end
+	end
+
+	if closestHit then
+		local target = closestHit.Instance
+		local character = target and target:FindFirstAncestorOfClass("Model")
+		if character and character:FindFirstChild("Humanoid") then
+			return character
+		end
+	end
+
+	return nil
+end
 -- [Target Detection]
 -- Update raycast for target detection
 local function updateRaycast()
@@ -275,18 +309,17 @@ local function onTouchEnded(touch)
 end
 
 -- Handle touch input for locking onto a target
-UIS.TouchTap:Connect(function(_, position)
-    -- Example: Lock onto the target when tapping on a character
-    local target = workspace:FindPartOnRayWithWhitelist(Camera:ScreenPointToRay(position.X, position.Y), {workspace})
-    local character = target and target.Parent
-    if character then
-        lockOn(character)
-    end
+UIS.TouchTap:Connect(function()
+	local character = getClosestRaycastTarget()
+	if character then
+		lockOn(character)
+	end
 end)
 
 -- Unlock from the target when tapping the screen with two fingers (example)
 UIS.TouchTap:Connect(function(_, position)
-    if UIS.TouchCount > 1 then
+	local touches = UIS.GetTouches()
+    if #touches > 1 then
         unlock()
     end
 end)
