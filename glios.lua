@@ -171,3 +171,10 @@ player.CharacterAdded:Connect(function()
 createCrosshair()
 RunService:BindToRenderStep("TargetRaycast", Enum.RenderPriority.Input.Value, updateRaycast)
 end)
+
+
+-- Touch input for mobile
+UIS.TouchTap:Connect(function(touchPositions, processed)
+	if processed then return end
+	teleportToTarget()
+end)
