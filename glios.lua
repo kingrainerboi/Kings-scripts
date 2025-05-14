@@ -580,7 +580,7 @@ local function Ult()
 	local targetHRP = currentTarget:FindFirstChild("HumanoidRootPart")
 	if not targetHRP then ultCooldown = false return end
 
-	local startPosition = hrp.Position
+	local startPosition = hrp.Position -- store original position
 	local duration = 3 -- seconds
 	local dashSpeed = MAX_DASH_SPEED * 2 -- Faster dash
 	local radius = 10 -- radius around the target to teleport to
@@ -608,7 +608,8 @@ local function Ult()
 		while tick() - dashStart < 0.2 do -- short fast dash
 			if (targetHRP.Position - hrp.Position).Magnitude <= STOP_DISTANCE then 
 				startFlight()
-				break end
+				break
+			end
 			RunService.Heartbeat:Wait()
 		end
 
@@ -616,8 +617,9 @@ local function Ult()
 		task.wait(0.1) -- short pause between tele-dashes
 		
 	end
-	task.wait(0.1) -- short pause between tele-dashes
-	hrp.CFrame = CFrame.new(startPosition) -- Teleport bac
+	
+	-- Now, teleport back to the original position after the ult duration
+	hrp.CFrame = CFrame.new(startPosition) -- Teleport back to original position
 
 	humanoid.AutoRotate = true
 	task.wait(COOLDOWN)
