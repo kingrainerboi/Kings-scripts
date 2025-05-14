@@ -359,7 +359,7 @@ end
 
 -- Movement logic
 RunService:BindToRenderStep("FlightControl", Enum.RenderPriority.Character.Value + 1, function()
-	if not flightEnabled or not bodyVelocity or not bodyGyro then return end
+	if not flightEnabled_3 or not bodyVelocity or not bodyGyro then return end
 
 	local moveDir = humanoid.MoveDirection
 	if moveDir.Magnitude > 0 then
