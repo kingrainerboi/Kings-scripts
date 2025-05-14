@@ -14,7 +14,7 @@ local RunService = game:GetService("RunService")
 local player = game.Players.LocalPlayer
 
 local cameraAssistEnabled = false
-local cameraAssistStrength = 0.1 -- How fast the camera centers toward the target
+local cameraAssistStrength = 0.5 -- How fast the camera centers toward the target
 
 -- [Player & Settings]
 local player = Players.LocalPlayer
@@ -252,29 +252,28 @@ local function createCrosshair()
 	
 	end
 
-	local function softCameraAssist(dt)
-		if cameraAssistEnabled and currentTarget and currentTarget:FindFirstChild("HumanoidRootPart") then
-			local root = currentTarget.HumanoidRootPart
+	local function softLockCamera(dt)
+		if currentTarget and currentTarget:FindFirstChild("HumanoidRootPart") and cameraAssistEnabled then
 			local camCF = Camera.CFrame
 			local camPos = camCF.Position
-			local targetPos = root.Position
+			local targetPos = currentTarget.HumanoidRootPart.Position
 	
-			-- Direction the camera is looking
-			local currentLookDir = (camCF.LookVector).Unit
-			-- Desired direction to nudge toward
-			local desiredDir = (targetPos - camPos).Unit
+			-- Vector from camera to target
+			local toTarget = (targetPos - camPos).Unit
 	
-			-- Lerp (interpolate) between current and desired
-			local newLookDir = currentLookDir:Lerp(desiredDir, cameraAssistStrength)
+			-- Current LookVector
+			local currentLook = camCF.LookVector
 	
-			-- Update camera orientation (position stays the same)
-			Camera.CFrame = CFrame.new(camPos, camPos + newLookDir)
+			-- Interpolate between current and desired direction
+			local newLook = currentLook:Lerp(toTarget, cameraAssistStrength)
+	
+			-- Apply a new CFrame that keeps current position but nudges the rotation
+			local newCFrame = CFrame.new(camPos, camPos + newLook)
+			Camera.CFrame = newCFrame
 		end
 	end
 
-	RunService.RenderStepped:Connect(function(dt)
-		softCameraAssist(dt)
-	end)
+	RunService.RenderStepped:Connect(softLockCamera)
 
 	local function updateCameraAssist()
 		cameraAssistEnabled = currentTarget ~= nil
