@@ -13,7 +13,9 @@ local RunService = game:GetService("RunService")
 local player = game.Players.LocalPlayer
 
 local cameraLockEnabled = false
-local CAMERA_LOCK_NAME = "HardLockCamera"
+local CAMERA_LOCK_NAME = "SoftCameraLock"
+
+local ASSIST_STRENGTH = 0.05 -- 0.05 is soft, 1 is instant snap
 
 -- [Player & Settings]
 local player = Players.LocalPlayer
@@ -219,36 +221,37 @@ local function createCrosshair()
 	end
 	
 
-	local function forceCameraLock()
+	local function softLockCamera()
 		if not currentTarget or not currentTarget:FindFirstChild("HumanoidRootPart") then
 			RunService:UnbindFromRenderStep(CAMERA_LOCK_NAME)
 			cameraLockEnabled = false
 			return
 		end
 	
-		local camPos = Camera.CFrame.Position
+		local camCF = Camera.CFrame
+		local camPos = camCF.Position
 		local targetPos = currentTarget.HumanoidRootPart.Position
 	
-		local direction = (targetPos - camPos).Unit
-		local newCF = CFrame.new(camPos, camPos + direction)
+		local desiredLook = (targetPos - camPos).Unit
+		local smoothedLook = camCF.LookVector:Lerp(desiredLook, ASSIST_STRENGTH)
 	
-		-- Overwrite camera rotation only (position remains the same)
-		Camera.CFrame = newCF
+		-- Only adjust the camera rotation (not position)
+		Camera.CFrame = CFrame.new(camPos, camPos + smoothedLook)
 	end
 
 	local function enableCameraLock()
 		if not cameraLockEnabled then
-			Camera.CameraType = Enum.CameraType.Scriptable -- Forces full camera control
-			RunService:BindToRenderStep(CAMERA_LOCK_NAME, Enum.RenderPriority.Camera.Value + 1, forceCameraLock)
+			RunService:BindToRenderStep(CAMERA_LOCK_NAME, Enum.RenderPriority.Camera.Value + 1, softLockCamera)
 			cameraLockEnabled = true
 		end
 	end
-
+	
 	local function disableCameraLock()
 		RunService:UnbindFromRenderStep(CAMERA_LOCK_NAME)
-		Camera.CameraType = Enum.CameraType.Custom -- Returns control to Roblox's default camera system
 		cameraLockEnabled = false
 	end
+
+	
 
 
 
