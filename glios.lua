@@ -1,13 +1,13 @@
 -- [Services]
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
 local Camera = workspace.CurrentCamera
 local flightEnabled = false
-local Player = game.Players.LocalPlayer
-local character = Player.Character or Player.CharacterAdded:Wait()
+local PlayerC = game.Players.LocalPlayer
+local character = PlayerC.Character or PlayerC.CharacterAdded:Wait()
 local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 local humanoid = character:WaitForChild("Humanoid")
+local RunService = game:GetService("RunService")
 
 -- [Player & Settings]
 local player = Players.LocalPlayer
