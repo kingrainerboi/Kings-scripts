@@ -365,6 +365,22 @@ function stopFlight()
 	if bodyVelocity then bodyVelocity:Destroy() bodyVelocity = nil end
 end
 
+local function refreshFlightButton()
+	if not player:FindFirstChild("PlayerGui") then return end
+	local gui = player.PlayerGui:FindFirstChild("FlightGui")
+	if gui then
+		local button = gui:FindFirstChildWhichIsA("TextButton")
+		if button then
+			if flightEnabled_3 then
+				button.Text = "Fly: ON"
+				button.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+			else
+				button.Text = "Fly: OFF"
+				button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+			end
+		end
+	end
+end
 -- Movement logic
 RunService:BindToRenderStep("FlightControl", Enum.RenderPriority.Character.Value + 1, function()
 	if not flightEnabled_3 or not bodyVelocity or not bodyGyro then return end
@@ -390,20 +406,38 @@ end)
 local function Dash2()
 	if not dashEnabled_2 or dashCooldown or not currentTarget then return end
 	dashCooldown = true
-	stopFlight()
+
+	local flightWasOn = flightEnabled_3
+	if flightWasOn then
+		flightEnabled_3 = false -- Update the actual state
+		stopFlight()
+		
+	end
 
 	local character = player.Character
 	local hrp = character and character:FindFirstChild("HumanoidRootPart")
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-	if not hrp or not humanoid then dashCooldown = false return end
+	if not hrp or not humanoid then
+		dashCooldown = false
+		if flightWasOn then
+			flightEnabled_3 = true
+			startFlight()
+		end
+		return
+	end
 
 	local lockedTarget = currentTarget
 	local targetHRP = lockedTarget:FindFirstChild("HumanoidRootPart")
-	if not targetHRP then dashCooldown = false return end
+	if not targetHRP then
+		dashCooldown = false
+		if flightWasOn then
+			flightEnabled_3 = true
+			startFlight()
+		end
+		return
+	end
 
 	local startPosition = hrp.Position
-
-	-- Dash to target
 	local direction = (targetHRP.Position - hrp.Position)
 	local distance = direction.Magnitude
 	local normalizedDir = direction.Unit
@@ -429,13 +463,13 @@ local function Dash2()
 
 	bv:Destroy()
 
-	-- Return dash to startPosition
+	-- Return to start position
 	local returnBV = Instance.new("BodyVelocity")
 	returnBV.MaxForce = Vector3.new(1, 1, 1) * 1e5
 	returnBV.Velocity = Vector3.zero
 	returnBV.Parent = hrp
 
-	
+	returnReached = false
 	while not returnReached do
 		local currentPos = hrp.Position
 		local toStart = (startPosition - currentPos)
@@ -443,7 +477,6 @@ local function Dash2()
 
 		if dist <= STOP_DISTANCE then
 			returnReached = true
-			startFlight()
 			break
 		end
 
@@ -454,10 +487,14 @@ local function Dash2()
 	returnBV:Destroy()
 	humanoid.AutoRotate = true
 
+	if flightWasOn then
+		flightEnabled_3 = true
+		startFlight()
+	end
+
 	task.wait(COOLDOWN)
 	dashCooldown = false
 end
-
 
 -- [Startup]
 createCrosshair()
