@@ -457,7 +457,8 @@ local function Dash2()
 		local newDirection = (newTargetHRP.Position - hrp.Position)
 		bv.Velocity = newDirection.Unit * MAX_DASH_SPEED
 
-		if newDirection.Magnitude <= STOP_DISTANCE then break end
+		-- Optional: Only stop if the dash reaches the max distance or timeout
+		if tick() - start > timeout then break end
 		RunService.Heartbeat:Wait()
 	end
 
