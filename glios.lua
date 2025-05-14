@@ -15,13 +15,13 @@ local player = game.Players.LocalPlayer
 local cameraLockEnabled = false
 local CAMERA_LOCK_NAME = "SoftCameraLock"
 
-local ASSIST_STRENGTH = 0.05 -- 0.05 is soft, 1 is instant snap
+local ASSIST_STRENGTH = 0.15 -- 0.05 is soft, 1 is instant snap
 
 -- [Player & Settings]
 local player = Players.LocalPlayer
 local MAX_DASH_SPEED = 150
 local RAY_DISTANCE = 1000
-local COOLDOWN = 1.8
+local COOLDOWN = 0.6
 local RAY_ANGLE_OFFSET = 5
 local STOP_DISTANCE = 3
 local TELEPORT_DISTANCE = 1
