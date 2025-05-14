@@ -21,10 +21,11 @@ local teleportCooldown = false
 local crosshair = nil
 local waypoint = nil
 local teleportEnabled = false
--- GUI BUTTON
+local teleportEnabled_2 = false
+-- GUI BUTTO
 local function createTeleportGui()
 	local gui = Instance.new("ScreenGui")
-	gui.Name = "Instant Transmission"
+	gui.Name = "tp"
 	gui.ResetOnSpawn = false
 	gui.IgnoreGuiInset = true
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -32,9 +33,9 @@ local function createTeleportGui()
 
 	local button = Instance.new("TextButton")
 	button.Size = UDim2.new(0, 160, 0, 30)
-	button.Position = UDim2.new(1, -170, 1, -40)
+	button.Position = UDim2.new(1, -170, 1, 50)
 	button.AnchorPoint = Vector2.new(0, 1)
-	button.Text = "Enable Transmission"
+	button.Text = "etp"
 	button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
 	button.TextColor3 = Color3.new(1, 1, 1)
 	button.TextScaled = true
@@ -43,14 +44,45 @@ local function createTeleportGui()
 	button.MouseButton1Click:Connect(function()
 		teleportEnabled = not teleportEnabled
 		if teleportEnabled then
-			button.Text = "Transmission: ON"
+			button.Text = "Tp: ON"
 			button.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
 		else
-			button.Text = "Transmission: OFF"
+			button.Text = "Tp: OFF"
 			button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
 		end
 	end)
 end
+
+local function createFlightGui()
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "tp"
+	gui.ResetOnSpawn = false
+	gui.IgnoreGuiInset = true
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	gui.Parent = player:WaitForChild("PlayerGui")
+
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(0, 160, 0, 30)
+	button.Position = UDim2.new(1, -170, 1, 50)
+	button.AnchorPoint = Vector2.new(0, 1)
+	button.Text = "efly"
+	button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+	button.TextColor3 = Color3.new(1, 1, 1)
+	button.TextScaled = true
+	button.Parent = gui
+
+	button.MouseButton1Click:Connect(function()
+		teleportEnabled_2 = not teleportEnabled_2
+		if teleportEnabled then
+			button.Text = "fly: ON"
+			button.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+		else
+			button.Text = "fly: OFF"
+			button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+		end
+	end)
+end
+
 -- CROSSHAIR
 local function createCrosshair()
 local gui = Instance.new("ScreenGui")
@@ -166,6 +198,50 @@ if teleportEnabled then
 	end
 end
 
+-- DASH TO TARGET
+local function dashToTarget()
+	if teleportEnabled_2 and dashCooldown or not currentTarget then return end
+	dashCooldown = true
+	
+	local character = player.Character  
+	if not character then return end  
+	local hrp = character:FindFirstChild("HumanoidRootPart")  
+	local humanoid = character:FindFirstChildOfClass("Humanoid")  
+	if not hrp or not humanoid then return end  
+	
+	local targetHRP = currentTarget:FindFirstChild("HumanoidRootPart")  
+	if not targetHRP then return end  
+	
+	humanoid.AutoRotate = false  
+	hrp.CFrame = CFrame.new(hrp.Position, targetHRP.Position)  
+	
+	local direction = (targetHRP.Position - hrp.Position)  
+	local distance = direction.Magnitude  
+	local normalizedDir = direction.Unit  
+	
+	local bv = Instance.new("BodyVelocity")  
+	bv.MaxForce = Vector3.new(1, 1, 1) * 1e5  
+	bv.Velocity = normalizedDir * MAX_DASH_SPEED  
+	bv.Parent = hrp  
+	
+	local startTime = tick()  
+	local timeout = distance / MAX_DASH_SPEED + 0.1  
+	
+	while tick() - startTime < timeout do  
+		if not currentTarget or not targetHRP or not character or not hrp then break end  
+		local dist = (targetHRP.Position - hrp.Position).Magnitude  
+		if dist <= STOP_DISTANCE then break end  
+		RunService.Heartbeat:Wait()  
+	end  
+	
+	bv:Destroy()  
+	humanoid.AutoRotate = true  
+	
+	task.wait(COOLDOWN)  
+	dashCooldown = false
+	
+	end
+
 -- STARTUP
 createCrosshair()
 createTeleportGui()
@@ -178,7 +254,16 @@ end)
 
 
 -- Touch input for mobile
-UIS.TouchTap:Connect(function(touchPositions, processed)
-	if processed then return end
-	teleportToTarget()
-end)
+UIS.TouchTap:Connect
+(
+	function(touchPositions, processed)
+		if processed then
+			if teleportEnabled then
+				teleportToTarget()
+			end
+			if teleportEnabled_2 then
+				dashToTarget()
+			end
+		end
+	end
+)
