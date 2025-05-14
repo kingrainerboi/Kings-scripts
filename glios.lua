@@ -5,7 +5,7 @@ local UIS = game:GetService("UserInputService")
 local Camera = workspace.CurrentCamera
 local flightEnabled = false
 local player = game.Players.LocalPlayer
-local character = layer.Character or player.CharacterAdded:Wait()
+local character = player.Character or player.CharacterAdded:Wait()
 local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 local humanoid = character:WaitForChild("Humanoid")
 
