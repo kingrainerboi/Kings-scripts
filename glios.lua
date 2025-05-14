@@ -15,7 +15,7 @@ local player = game.Players.LocalPlayer
 local cameraLockEnabled = false
 local CAMERA_LOCK_NAME = "SoftCameraLock"
 
-local ASSIST_STRENGTH = 0.15 -- 0.05 is soft, 1 is instant snap
+local ASSIST_STRENGTH = 0.45 -- 0.05 is soft, 1 is instant snap
 
 -- [Player & Settings]
 local player = Players.LocalPlayer
@@ -38,6 +38,7 @@ local dashEnabled_2 = false
 local flightEnabled_3 = false
 local flightdash = false
 local returnReached = false
+local ult = false
 local lockOnTarget = nil  
 local lastTouchPosition = nil  
 -- [Flight Variables]
@@ -95,20 +96,21 @@ local function createFlightGui()
 	button.Parent = gui  
 
 	button.MouseButton1Click:Connect(function()  
-		if not flightdash then
-			flightEnabled_3 = not flightEnabled_3  
-			if flightEnabled_3 then  
-				button.Text = "Fly: ON"  
-				button.BackgroundColor3 = Color3.fromRGB(0, 170, 0)  
-				startFlight()
-			else  
-				button.Text = "Fly: OFF"  
-				button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)  
-				stopFlight()
-			end  
+		if not ult then
+			if not flightdash  then
+				flightEnabled_3 = not flightEnabled_3  
+				if flightEnabled_3 then  
+					button.Text = "Fly: ON"  
+					button.BackgroundColor3 = Color3.fromRGB(0, 170, 0)  
+					startFlight()
+				else  
+					button.Text = "Fly: OFF"  
+					button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)  
+					stopFlight()
+				end  
+			end
 		end
 	end)
-
 end
 
 local function createDashGui()
@@ -566,7 +568,54 @@ local function Dash2()
 	task.wait(COOLDOWN)
 	dashCooldown = false
 end
+local function Ult()
+	if not currentTarget or ultCooldown then return end
+	ultCooldown = true
 
+	local character = player.Character
+	local hrp = character and character:FindFirstChild("HumanoidRootPart")
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if not hrp or not humanoid then ultCooldown = false return end
+
+	local targetHRP = currentTarget:FindFirstChild("HumanoidRootPart")
+	if not targetHRP then ultCooldown = false return end
+
+	local duration = 3 -- seconds
+	local dashSpeed = MAX_DASH_SPEED * 2 -- Faster dash
+	local radius = 10 -- radius around the target to teleport to
+	local startTime = tick()
+
+	humanoid.AutoRotate = false
+
+	while tick() - startTime < duration do
+		-- Random teleport around the target
+		local angle = math.rad(math.random(0, 360))
+		local offset = Vector3.new(math.cos(angle), 0, math.sin(angle)) * radius
+		local teleportPos = targetHRP.Position + offset + Vector3.new(0, 2, 0) -- slightly above ground
+
+		hrp.CFrame = CFrame.new(teleportPos, targetHRP.Position)
+
+		-- Dash to target
+		local direction = (targetHRP.Position - hrp.Position).Unit
+		local bv = Instance.new("BodyVelocity")
+		bv.MaxForce = Vector3.new(1, 1, 1) * 1e6
+		bv.Velocity = direction * dashSpeed
+		bv.Parent = hrp
+
+		local dashStart = tick()
+		while tick() - dashStart < 0.2 do -- short fast dash
+			if (targetHRP.Position - hrp.Position).Magnitude <= STOP_DISTANCE then break end
+			RunService.Heartbeat:Wait()
+		end
+
+		bv:Destroy()
+		task.wait(0.1) -- short pause between tele-dashes
+	end
+
+	humanoid.AutoRotate = true
+	task.wait(COOLDOWN)
+	ultCooldown = false
+end
 -- [Startup]
 createCrosshair()
 createTeleportGui()
@@ -582,31 +631,37 @@ end)
 -- [Touch Input Fix]
 UIS.TouchTap:Connect(function(touchPositions, processed)
 	if not processed then
-
 		
-
-
-		if teleportEnabled and dashEnabled_2 then
-			tpAndDash()
+		if ult then
+			Ult()
 		else
-			if teleportEnabled then
-				teleportToTarget()
-			end
-			if dashEnabled_2 then
-				dashToTarget()
+			if teleportEnabled and dashEnabled_2 then
+				tpAndDash()
+			else
+				if teleportEnabled then
+					teleportToTarget()
+				end
+				if dashEnabled_2 then
+					dashToTarget()
+				end
 			end
 		end
 	end
 end)
 
 RunService.Heartbeat:Connect(function()
-	if flightEnabled_3 and dashEnabled_2  then
-		flightdash = true
-		Dash2()
-	else 
-		flightdash = false
+	if flightEnabled_3 and dashEnabled_2 and teleportEnabled then
+		ult = true
+	else
+	
+		if flightEnabled_3 and dashEnabled_2  then
+			flightdash = true
+			Dash2()
+		else 
+			flightdash = false
+		end
+		ult = false
 	end
-
 	
 end)
 
