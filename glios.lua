@@ -238,6 +238,7 @@ local function createCrosshair()
 
 	local function enableCameraLock()
 		if not cameraLockEnabled then
+			Camera.CameraType = Enum.CameraType.Scriptable -- Forces full camera control
 			RunService:BindToRenderStep(CAMERA_LOCK_NAME, Enum.RenderPriority.Camera.Value + 1, forceCameraLock)
 			cameraLockEnabled = true
 		end
@@ -245,6 +246,7 @@ local function createCrosshair()
 
 	local function disableCameraLock()
 		RunService:UnbindFromRenderStep(CAMERA_LOCK_NAME)
+		Camera.CameraType = Enum.CameraType.Custom -- Returns control to Roblox's default camera system
 		cameraLockEnabled = false
 	end
 
