@@ -3,6 +3,10 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
 local Camera = workspace.CurrentCamera
+local flightEnabled = false
+local character = Players.Character or Players.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+local humanoid = character:WaitForChild("Humanoid")
 
 -- [Player & Settings]
 local player = Players.LocalPlayer
@@ -26,11 +30,7 @@ local flightEnabled_3 = false
 
 -- [Flight Variables]
 local speed = 50
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-local humanoid = character:WaitForChild("Humanoid")
 local bodyGyro, bodyVelocity
-
 
 
 -- [GUI Creation]
@@ -104,7 +104,7 @@ local function createDashGui()
 
 	local button = Instance.new("TextButton")  
 	button.Size = UDim2.new(0, 160, 0, 30)  
-	button.Position = UDim2.new(1, -170, 1, -100)  
+	button.Position = UDim2.new(1, -170, 1, -180)  
 	button.AnchorPoint = Vector2.new(0, 1)  
 	button.Text = "edash"  
 	button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)  
@@ -335,85 +335,51 @@ local function tpAndDash()
 	dashCooldown = false
 end
 
--- Function to initialize the flight system (BodyGyro and BodyVelocity)
-local function initializeFlight()
-    bodyGyro = Instance.new("BodyGyro")
-    bodyGyro.P = 9e4
-    bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
-    bodyGyro.CFrame = Camera.CFrame
-    bodyGyro.Parent = humanoidRootPart
+-- Start flight: create physics
+function startFlight()
+	if bodyGyro or bodyVelocity then return end -- Prevent duplicates
 
-    bodyVelocity = Instance.new("BodyVelocity")
-    bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-    bodyVelocity.Velocity = Vector3.zero
-    bodyVelocity.Parent = humanoidRootPart
+	bodyGyro = Instance.new("BodyGyro")
+	bodyGyro.P = 9e4
+	bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+	bodyGyro.CFrame = workspace.CurrentCamera.CFrame
+	bodyGyro.Parent = humanoidRootPart
+
+	bodyVelocity = Instance.new("BodyVelocity")
+	bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+	bodyVelocity.Velocity = Vector3.zero
+	bodyVelocity.Parent = humanoidRootPart
 end
 
-
--- Function to update the flight movement based on camera and movement direction
-local function updateFlightMovement()
-    local moveDir = humanoid.MoveDirection
-
-    if moveDir.Magnitude > 0 then
-        local cameraCF = Camera.CFrame
-        local cameraLook = cameraCF.LookVector
-        local cameraRight = cameraCF.RightVector
-
-        -- Project joystick direction to camera-based movement
-        local forwardAmount = moveDir:Dot(cameraLook)
-        local rightAmount = moveDir:Dot(cameraRight)
-
-        local finalDirection = (cameraLook * forwardAmount) + (cameraRight * rightAmount)
-
-        bodyVelocity.Velocity = finalDirection.Unit * speed
-    else
-        bodyVelocity.Velocity = Vector3.zero
-    end
-
-    bodyGyro.CFrame = Camera.CFrame
+-- Stop flight: remove physics
+function stopFlight()
+	if bodyGyro then bodyGyro:Destroy() bodyGyro = nil end
+	if bodyVelocity then bodyVelocity:Destroy() bodyVelocity = nil end
 end
 
--- Function to start the flight by initializing the system and binding the update loop
-local function startFlight()
-    initializeFlight()
+-- Movement logic
+RunService:BindToRenderStep("FlightControl", Enum.RenderPriority.Character.Value + 1, function()
+	if not flightEnabled or not bodyVelocity or not bodyGyro then return end
 
-    -- Flight loop: continuously update movement while in flight mode
-    RunService:BindToRenderStep("CameraFlightSwitch", Enum.RenderPriority.Character.Value + 1, function()
-        updateFlightMovement()
-    end)
-end
+	local moveDir = humanoid.MoveDirection
+	if moveDir.Magnitude > 0 then
+		local cameraCF = workspace.CurrentCamera.CFrame
+		local cameraLook = cameraCF.LookVector
+		local cameraRight = cameraCF.RightVector
 
--- [Stop Flight Function]
-local flightBindFunction
+		local forward = moveDir:Dot(cameraLook)
+		local sideways = moveDir:Dot(cameraRight)
+		local moveVec = (cameraLook * forward) + (cameraRight * sideways)
 
-local function stopFlight()
-    -- Remove the flight loop from RenderStep
-    if flightBindFunction then
-        RunService:UnbindFromRenderStep("CameraFlightSwitch")
-        flightBindFunction = nil
-    end
-
-    -- Remove BodyGyro and BodyVelocity from HumanoidRootPart
-    if bodyGyro then
-        bodyGyro:Destroy()
-        bodyGyro = nil
-    end
-
-    if bodyVelocity then
-        bodyVelocity:Destroy()
-        bodyVelocity = nil
-    end
-end
-
-local function flight()
-	if flightEnabled_3 then
-		startFlight()
+		bodyVelocity.Velocity = moveVec.Unit * speed
 	else
-		stopFlight()
+		bodyVelocity.Velocity = Vector3.zero
 	end
 
+	bodyGyro.CFrame = workspace.CurrentCamera.CFrame
+end)
 
-end
+
 
 
 -- [Startup]
@@ -433,7 +399,9 @@ UIS.TouchTap:Connect(function(touchPositions, processed)
 	if not processed then
 
 		if flightEnabled_3 then
-			flight()
+			startFlight()
+		else
+			stopFlight()
 		end
 
 		if teleportEnabled and dashEnabled_2 then
@@ -448,3 +416,4 @@ UIS.TouchTap:Connect(function(touchPositions, processed)
 		end
 	end
 end)
+
