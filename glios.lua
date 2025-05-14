@@ -254,47 +254,43 @@ local function tpAndDash()
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	if not hrp or not humanoid then dashCooldown = false return end
 
-	local startPosition = hrp.Position -- Save current position
-
-	local targetHRP = currentTarget:FindFirstChild("HumanoidRootPart")
+	local lockedTarget = currentTarget -- << Lock the target
+	local targetHRP = lockedTarget:FindFirstChild("HumanoidRootPart")
 	if not targetHRP then dashCooldown = false return end
 
-	-- Set initial direction toward the target
+	local startPosition = hrp.Position -- Save current position
+
+	-- Calculate initial dash direction
 	local direction = (targetHRP.Position - hrp.Position)
 	local distance = direction.Magnitude
 	local normalizedDir = direction.Unit
 
-	-- Create BodyVelocity for movement
+	-- Dash setup
 	local bv = Instance.new("BodyVelocity")
 	bv.MaxForce = Vector3.new(1, 1, 1) * 1e5
 	bv.Velocity = normalizedDir * MAX_DASH_SPEED
 	bv.Parent = hrp
 
 	humanoid.AutoRotate = false
-	local timeout = distance / MAX_DASH_SPEED + 0.1
+	local timeout = distance / MAX_DASH_SPEED + 0.2
 	local start = tick()
 
-	-- Keep moving towards the target while updating direction
+	-- Follow locked target position, even if it moves
 	while tick() - start < timeout do
-		if not currentTarget or not character or not hrp or not targetHRP then break end
-		
-		-- Update direction if the target has moved
-		local targetPosition = targetHRP.Position
-		local newDirection = (targetPosition - hrp.Position)
+		if not lockedTarget or not lockedTarget:FindFirstChild("HumanoidRootPart") then break end
+		local newTargetHRP = lockedTarget:FindFirstChild("HumanoidRootPart")
+		local newDirection = (newTargetHRP.Position - hrp.Position)
 		bv.Velocity = newDirection.Unit * MAX_DASH_SPEED
 
-		-- Stop when close enough to the target
-		if (targetPosition - hrp.Position).Magnitude <= STOP_DISTANCE then break end
-		
+		if newDirection.Magnitude <= STOP_DISTANCE then break end
 		RunService.Heartbeat:Wait()
 	end
 
-	-- Clean up and restore normal behavior
 	bv:Destroy()
 	humanoid.AutoRotate = true
 
-	task.wait(0.1) -- slight delay before teleport
-	hrp.CFrame = CFrame.new(startPosition) -- Teleport back to original position
+	task.wait(0.1)
+	hrp.CFrame = CFrame.new(startPosition) -- Teleport back
 
 	task.wait(COOLDOWN)
 	dashCooldown = false
