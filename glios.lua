@@ -134,7 +134,6 @@ removeOutline()
 end
 -- TELEPORT
 function teleportToTarget()
-if teleportCooldown or not teleportEnabled or not currentTarget then return end
 teleportCooldown = true
 local character = player.Character
 if not character then return end
