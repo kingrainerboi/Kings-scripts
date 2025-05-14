@@ -9,17 +9,13 @@ local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 local humanoid = character:WaitForChild("Humanoid")
 local RunService = game:GetService("RunService")
 
-local UserInputService = game:GetService("UserInputService")
 
-local cameraLocked = false
-local defaultCameraType = Enum.CameraType.Custom
-local cameraOffset = Vector3.new(0, 5, -10) -- Position behind and above the target
 
-local rotateInput = Vector2.new(0, 0)
-local rotationSpeed = 0.3
-local currentRotation = CFrame.new()
+local player = game.Players.LocalPlayer
 
-local mobileRotationActive = false
+local cameraAssistEnabled = false
+local cameraAssistStrength = 0.1 -- How fast the camera centers toward the target
+
 -- [Player & Settings]
 local player = Players.LocalPlayer
 local MAX_DASH_SPEED = 150
@@ -256,59 +252,33 @@ local function createCrosshair()
 	
 	end
 
-	local function updateCameraLock()
-		if currentTarget then
-			cameraLocked = true
-		else
-			cameraLocked = false
+	local function softCameraAssist(dt)
+		if cameraAssistEnabled and currentTarget and currentTarget:FindFirstChild("HumanoidRootPart") then
+			local root = currentTarget.HumanoidRootPart
+			local camCF = Camera.CFrame
+			local camPos = camCF.Position
+			local targetPos = root.Position
+	
+			-- Direction the camera is looking
+			local currentLookDir = (camCF.LookVector).Unit
+			-- Desired direction to nudge toward
+			local desiredDir = (targetPos - camPos).Unit
+	
+			-- Lerp (interpolate) between current and desired
+			local newLookDir = currentLookDir:Lerp(desiredDir, cameraAssistStrength)
+	
+			-- Update camera orientation (position stays the same)
+			Camera.CFrame = CFrame.new(camPos, camPos + newLookDir)
 		end
 	end
 
-	local function updateCamera(dt)
-		updateCameraLock()
-	
-		if cameraLocked and currentTarget and currentTarget:FindFirstChild("HumanoidRootPart") then
-			Camera.CameraType = Enum.CameraType.Scriptable
-	
-			local targetHRP = currentTarget.HumanoidRootPart
-			local targetPos = targetHRP.Position
-	
-			-- Apply user rotation input
-			local yaw = rotateInput.X * rotationSpeed
-			local pitch = -rotateInput.Y * rotationSpeed
-			currentRotation = currentRotation * CFrame.Angles(0, math.rad(yaw), 0)
-	
-			local cameraPos = targetPos + currentRotation:VectorToWorldSpace(cameraOffset)
-			Camera.CFrame = CFrame.new(cameraPos, targetPos)
-		else
-			Camera.CameraType = defaultCameraType
-		end
-	end
+	RunService.RenderStepped:Connect(function(dt)
+		softCameraAssist(dt)
+	end)
 
-	local function onTouchMoved(input)
-		if mobileRotationActive and cameraLocked then
-			local delta = input.Delta
-			rotateInput = Vector2.new(delta.X, delta.Y)
-		end
+	local function updateCameraAssist()
+		cameraAssistEnabled = currentTarget ~= nil
 	end
-	
-	local function onTouchStart(input)
-		if input.UserInputType == Enum.UserInputType.Touch then
-			mobileRotationActive = true
-		end
-	end
-	
-	local function onTouchEnd(input)
-		if input.UserInputType == Enum.UserInputType.Touch then
-			mobileRotationActive = false
-			rotateInput = Vector2.new(0, 0)
-		end
-	end
-
-	RunService.RenderStepped:Connect(updateCamera)
-UserInputService.TouchMoved:Connect(onTouchMoved)
-UserInputService.TouchStarted:Connect(onTouchStart)
-UserInputService.TouchEnded:Connect(onTouchEnd)
 
 -- [Teleport Function]
 function teleportToTarget()
