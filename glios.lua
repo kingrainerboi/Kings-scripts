@@ -42,8 +42,9 @@ local ult = false
 local lockOnTarget = nil  
 local lastTouchPosition = nil  
 -- [Flight Variables]
-local speed = 50
-local bodyGyro, bodyVelocity
+local flightEnabled_3 = true -- Make sure this is set to your flight system's condition
+local speed = 50 -- Set your desired speed
+local bodyVelocity, bodyGyro
 
 
 -- [GUI Creation]
@@ -454,27 +455,56 @@ local function refreshFlightButton()
 	end
 end
 -- Movement logic
-RunService:BindToRenderStep("FlightControl", Enum.RenderPriority.Character.Value + 1, function()
-	if not flightEnabled_3 or not bodyVelocity or not bodyGyro then return end
 
-	local moveDir = humanoid.MoveDirection
-	if moveDir.Magnitude > 0 then
-		local cameraCF = workspace.CurrentCamera.CFrame
-		local cameraLook = cameraCF.LookVector
-		local cameraRight = cameraCF.RightVector
+-- Function to initialize bodyVelocity and bodyGyro
+local function initializeFlight(character)
+    local humanoid = character:WaitForChild("Humanoid")
+    local rootPart = character:WaitForChild("HumanoidRootPart")
 
-		local forward = moveDir:Dot(cameraLook)
-		local sideways = moveDir:Dot(cameraRight)
-		local moveVec = (cameraLook * forward) + (cameraRight * sideways)
+    -- Create bodyVelocity and bodyGyro if they don't exist
+    bodyVelocity = Instance.new("BodyVelocity")
+    bodyGyro = Instance.new("BodyGyro")
 
-		bodyVelocity.Velocity = moveVec.Unit * speed
-	else
-		bodyVelocity.Velocity = Vector3.zero
-	end
+    bodyVelocity.MaxForce = Vector3.new(100000, 100000, 100000)
+    bodyGyro.MaxTorque = Vector3.new(100000, 100000, 100000)
 
-	bodyGyro.CFrame = workspace.CurrentCamera.CFrame
+    bodyVelocity.Parent = rootPart
+    bodyGyro.Parent = rootPart
+end
+
+-- Listen for when the character respawns
+player.CharacterAdded:Connect(function(character)
+    -- Initialize the flight components for the new character
+    initializeFlight(character)
+
+    -- Bind the flight control system again after respawn
+    RunService:BindToRenderStep("FlightControl", Enum.RenderPriority.Character.Value + 1, function()
+        if not flightEnabled_3 or not bodyVelocity or not bodyGyro then return end
+
+        local humanoid = character:WaitForChild("Humanoid")
+        local moveDir = humanoid.MoveDirection
+        if moveDir.Magnitude > 0 then
+            local cameraCF = workspace.CurrentCamera.CFrame
+            local cameraLook = cameraCF.LookVector
+            local cameraRight = cameraCF.RightVector
+
+            local forward = moveDir:Dot(cameraLook)
+            local sideways = moveDir:Dot(cameraRight)
+            local moveVec = (cameraLook * forward) + (cameraRight * sideways)
+
+            bodyVelocity.Velocity = moveVec.Unit * speed
+        else
+            bodyVelocity.Velocity = Vector3.zero
+        end
+
+        bodyGyro.CFrame = workspace.CurrentCamera.CFrame
+    end)
 end)
 
+-- Initialize for the first time if the character already exists
+if player.Character then
+    initializeFlight(player.Character)
+end
 local function Dash2()
 	if not dashEnabled_2 or dashCooldown or not currentTarget then return end
 	dashCooldown = true
