@@ -169,11 +169,12 @@ local function createOutline(targetChar)
 	highlight.OutlineColor = Color3.fromRGB(255, 255, 0)
 	highlight.OutlineTransparency = 0
 	highlight.Parent = targetChar
+	outlinedTarget = targetChar -- NEW: set this
 end
 local function removeOutline()
 	if highlight then highlight:Destroy() highlight = nil end
+	outlinedTarget = nil -- NEW: clear this
 end
-
 -- [Ray Directions]
 local function degToRad(deg)
 	return deg * math.pi / 180
@@ -320,13 +321,7 @@ local function onTouchEnded(touch)
     lastTouchPosition = nil
 end
 
--- Handle touch input for locking onto a target
-UIS.TouchTap:Connect(function()
-	local character = getClosestRaycastTarget()
-	if character then
-		lockOn(character)
-	end
-end)
+
 
 -- Unlock from the target when tapping the screen with two fingers (example)
 UIS.TouchTap:Connect(function(_, position)
@@ -336,12 +331,16 @@ UIS.TouchTap:Connect(function(_, position)
     end
 end)
 
--- Run the camera update and target detection
 RunService.RenderStepped:Connect(function()
-	if lockOnTarget then
+	if outlinedTarget then
+		lockOn(outlinedTarget)
 		updateCamera()
+	else
+		unlock()
 	end
-	updateRaycast() -- only if you need continuous ray updates
+
+	-- Leave this here if other functions depend on raycasting
+	updateRaycast()
 end)
 
 
