@@ -45,7 +45,7 @@ local function createTeleportGui()
 
 	local button = Instance.new("TextButton")  
 	button.Size = UDim2.new(0, 160, 0, 30)  
-	button.Position = UDim2.new(1, -170, 1, -50)  
+	button.Position = UDim2.new(1, -170, 1, -80)  
 	button.AnchorPoint = Vector2.new(0, 1)  
 	button.Text = "etp"  
 	button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)  
@@ -75,7 +75,7 @@ local function createFlightGui()
 
 	local button = Instance.new("TextButton")  
 	button.Size = UDim2.new(0, 160, 0, 30)  
-	button.Position = UDim2.new(1, -170, 1, -90)  
+	button.Position = UDim2.new(1, -170, 1, -130)  
 	button.AnchorPoint = Vector2.new(0, 1)  
 	button.Text = "efly"  
 	button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)  
@@ -399,11 +399,7 @@ end)
 UIS.TouchTap:Connect(function(touchPositions, processed)
 	if not processed then
 
-		if flightEnabled_3 then
-			startFlight()
-		else
-			stopFlight()
-		end
+		
 
 		if teleportEnabled and dashEnabled_2 then
 			tpAndDash()
@@ -418,3 +414,9 @@ UIS.TouchTap:Connect(function(touchPositions, processed)
 	end
 end)
 
+-- flight
+if flightEnabled_3 then
+	startFlight()
+else
+	stopFlight()
+end
