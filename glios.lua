@@ -259,11 +259,12 @@ local function tpAndDash()
 	local targetHRP = currentTarget:FindFirstChild("HumanoidRootPart")
 	if not targetHRP then dashCooldown = false return end
 
+	-- Set initial direction toward the target
 	local direction = (targetHRP.Position - hrp.Position)
 	local distance = direction.Magnitude
 	local normalizedDir = direction.Unit
 
-	-- Dash Movement
+	-- Create BodyVelocity for movement
 	local bv = Instance.new("BodyVelocity")
 	bv.MaxForce = Vector3.new(1, 1, 1) * 1e5
 	bv.Velocity = normalizedDir * MAX_DASH_SPEED
@@ -273,12 +274,22 @@ local function tpAndDash()
 	local timeout = distance / MAX_DASH_SPEED + 0.1
 	local start = tick()
 
+	-- Keep moving towards the target while updating direction
 	while tick() - start < timeout do
 		if not currentTarget or not character or not hrp or not targetHRP then break end
-		if (targetHRP.Position - hrp.Position).Magnitude <= STOP_DISTANCE then break end
+		
+		-- Update direction if the target has moved
+		local targetPosition = targetHRP.Position
+		local newDirection = (targetPosition - hrp.Position)
+		bv.Velocity = newDirection.Unit * MAX_DASH_SPEED
+
+		-- Stop when close enough to the target
+		if (targetPosition - hrp.Position).Magnitude <= STOP_DISTANCE then break end
+		
 		RunService.Heartbeat:Wait()
 	end
 
+	-- Clean up and restore normal behavior
 	bv:Destroy()
 	humanoid.AutoRotate = true
 
