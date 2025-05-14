@@ -614,8 +614,10 @@ local function Ult()
 
 		bv:Destroy()
 		task.wait(0.1) -- short pause between tele-dashes
-		hrp.CFrame = CFrame.new(startPosition) -- Teleport back
+		
 	end
+	task.wait(0.1) -- short pause between tele-dashes
+	hrp.CFrame = CFrame.new(startPosition) -- Teleport bac
 
 	humanoid.AutoRotate = true
 	task.wait(COOLDOWN)
