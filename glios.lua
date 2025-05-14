@@ -28,7 +28,8 @@ local dashCooldown = false
 local teleportEnabled = false
 local dashEnabled_2 = false
 local flightEnabled_3 = false
-
+local flightdash = false
+local returnReached = false
 -- [Flight Variables]
 local speed = 50
 local bodyGyro, bodyVelocity
@@ -84,17 +85,20 @@ local function createFlightGui()
 	button.Parent = gui  
 
 	button.MouseButton1Click:Connect(function()  
-		flightEnabled_3 = not flightEnabled_3  
-		if flightEnabled_3 then  
-			button.Text = "Fly: ON"  
-			button.BackgroundColor3 = Color3.fromRGB(0, 170, 0)  
-			startFlight()
-		else  
-			button.Text = "Fly: OFF"  
-			button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)  
-			stopFlight()
-		end  
+		if not flightdash then
+			flightEnabled_3 = not flightEnabled_3  
+			if flightEnabled_3 then  
+				button.Text = "Fly: ON"  
+				button.BackgroundColor3 = Color3.fromRGB(0, 170, 0)  
+				startFlight()
+			else  
+				button.Text = "Fly: OFF"  
+				button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)  
+				stopFlight()
+			end  
+		end
 	end)
+
 end
 
 local function createDashGui()
@@ -338,6 +342,7 @@ local function tpAndDash()
 	dashCooldown = false
 end
 
+
 -- Start flight: create physics
 function startFlight()
 	if bodyGyro or bodyVelocity then return end -- Prevent duplicates
@@ -382,7 +387,76 @@ RunService:BindToRenderStep("FlightControl", Enum.RenderPriority.Character.Value
 	bodyGyro.CFrame = workspace.CurrentCamera.CFrame
 end)
 
+local function Dash2()
+	if not dashEnabled_2 or dashCooldown or not currentTarget then return end
+	dashCooldown = true
+	stopFlight()
 
+	local character = player.Character
+	local hrp = character and character:FindFirstChild("HumanoidRootPart")
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if not hrp or not humanoid then dashCooldown = false return end
+
+	local lockedTarget = currentTarget
+	local targetHRP = lockedTarget:FindFirstChild("HumanoidRootPart")
+	if not targetHRP then dashCooldown = false return end
+
+	local startPosition = hrp.Position
+
+	-- Dash to target
+	local direction = (targetHRP.Position - hrp.Position)
+	local distance = direction.Magnitude
+	local normalizedDir = direction.Unit
+
+	local bv = Instance.new("BodyVelocity")
+	bv.MaxForce = Vector3.new(1, 1, 1) * 1e5
+	bv.Velocity = normalizedDir * MAX_DASH_SPEED
+	bv.Parent = hrp
+
+	humanoid.AutoRotate = false
+	local timeout = distance / MAX_DASH_SPEED + 0.2
+	local start = tick()
+
+	while tick() - start < timeout do
+		if not lockedTarget or not lockedTarget:FindFirstChild("HumanoidRootPart") then break end
+		local newTargetHRP = lockedTarget:FindFirstChild("HumanoidRootPart")
+		local newDirection = (newTargetHRP.Position - hrp.Position)
+		bv.Velocity = newDirection.Unit * MAX_DASH_SPEED
+
+		if newDirection.Magnitude <= STOP_DISTANCE then break end
+		RunService.Heartbeat:Wait()
+	end
+
+	bv:Destroy()
+
+	-- Return dash to startPosition
+	local returnBV = Instance.new("BodyVelocity")
+	returnBV.MaxForce = Vector3.new(1, 1, 1) * 1e5
+	returnBV.Velocity = Vector3.zero
+	returnBV.Parent = hrp
+
+	
+	while not returnReached do
+		local currentPos = hrp.Position
+		local toStart = (startPosition - currentPos)
+		local dist = toStart.Magnitude
+
+		if dist <= STOP_DISTANCE then
+			returnReached = true
+			startFlight()
+			break
+		end
+
+		returnBV.Velocity = toStart.Unit * MAX_DASH_SPEED
+		RunService.Heartbeat:Wait()
+	end
+
+	returnBV:Destroy()
+	humanoid.AutoRotate = true
+
+	task.wait(COOLDOWN)
+	dashCooldown = false
+end
 
 
 -- [Startup]
@@ -401,7 +475,14 @@ end)
 UIS.TouchTap:Connect(function(touchPositions, processed)
 	if not processed then
 
-		
+		if flightEnabled_3 and dashEnabled_2  then
+			flightdash = true
+			Dash2()
+		else 
+			flightdash = false
+		end
+
+
 
 		if teleportEnabled and dashEnabled_2 then
 			tpAndDash()
