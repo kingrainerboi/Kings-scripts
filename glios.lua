@@ -9,6 +9,17 @@ local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 local humanoid = character:WaitForChild("Humanoid")
 local RunService = game:GetService("RunService")
 
+local UserInputService = game:GetService("UserInputService")
+
+local cameraLocked = false
+local defaultCameraType = Enum.CameraType.Custom
+local cameraOffset = Vector3.new(0, 5, -10) -- Position behind and above the target
+
+local rotateInput = Vector2.new(0, 0)
+local rotationSpeed = 0.3
+local currentRotation = CFrame.new()
+
+local mobileRotationActive = false
 -- [Player & Settings]
 local player = Players.LocalPlayer
 local MAX_DASH_SPEED = 150
@@ -134,6 +145,7 @@ local function createDashGui()
 end
 
 -- [Crosshair]
+-- CREATE CROSSHAIR WITHOUT IMAGE ASSET
 local function createCrosshair()
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "DashCrosshair"
@@ -141,211 +153,162 @@ local function createCrosshair()
 	gui.IgnoreGuiInset = true
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.Parent = player:WaitForChild("PlayerGui")
-
-	local cross = Instance.new("Frame")
-	cross.Name = "Crosshair"
-	cross.Size = UDim2.new(0, 8, 0, 8)
-	cross.Position = UDim2.new(0.5, 0, 0.5, 0)
-	cross.AnchorPoint = Vector2.new(0.5, 0.5)
-	cross.BackgroundColor3 = Color3.new(1, 1, 1)
-	cross.BackgroundTransparency = 0.6
-	cross.BorderSizePixel = 0
-	cross.Parent = gui
-
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(1, 0)
-	corner.Parent = cross
-
+	
+	local cross = Instance.new("Frame")  
+	cross.Name = "Crosshair"  
+	cross.Size = UDim2.new(0, 8, 0, 8)  
+	cross.Position = UDim2.new(0.5, 0, 0.5, 0)  
+	cross.AnchorPoint = Vector2.new(0.5, 0.5)  
+	cross.BackgroundColor3 = Color3.new(1, 1, 1)  
+	cross.BackgroundTransparency = 0.6  
+	cross.BorderSizePixel = 0  
+	cross.Parent = gui  
+	
+	local corner = Instance.new("UICorner")  
+	corner.CornerRadius = UDim.new(1, 0)  
+	corner.Parent = cross  
+	
 	crosshair = gui
-end
-
--- [Highlight]
-local function createOutline(targetChar)
+	
+	end
+	
+	local function removeCrosshair()
+	if crosshair then
+	crosshair:Destroy()
+	crosshair = nil
+	end
+	end
+	
+	-- OUTLINE LOGIC
+	local function createOutline(targetChar)
 	if not targetChar then return end
 	if highlight then highlight:Destroy() end
-	highlight = Instance.new("Highlight")
-	highlight.Adornee = targetChar
-	highlight.FillTransparency = 1
-	highlight.OutlineColor = Color3.fromRGB(255, 255, 0)
-	highlight.OutlineTransparency = 0
+	
+	highlight = Instance.new("Highlight")  
+	highlight.Adornee = targetChar  
+	highlight.FillTransparency = 1  
+	highlight.OutlineColor = Color3.fromRGB(255, 255, 0)  
+	highlight.OutlineTransparency = 0  
 	highlight.Parent = targetChar
-end
-local function removeOutline()
-	if highlight then highlight:Destroy() highlight = nil end
-end
-
--- [Ray Directions]
-local function degToRad(deg)
+	
+	end
+	
+	local function removeOutline()
+	if highlight then
+	highlight:Destroy()
+	highlight = nil
+	end
+	end
+	
+	-- DEGREE TO RADIAN
+	local function degToRad(deg)
 	return deg * math.pi / 180
-end
-
-local function getRayDirections()
+	end
+	
+	-- GET RAY DIRECTIONS IN A CONE
+	local function getRayDirections()
 	local baseDir = Camera.CFrame.LookVector
 	local rightVec = Camera.CFrame.RightVector
 	local upVec = Camera.CFrame.UpVector
-	local offset = math.tan(degToRad(RAY_ANGLE_OFFSET or 5))
-	return {
-		baseDir,
-		(baseDir + rightVec * offset).Unit,
-		(baseDir - rightVec * offset).Unit,
-		(baseDir + upVec * offset).Unit,
-		(baseDir - upVec * offset).Unit,
-	}
-end
-
-local function debugRay(origin, direction, color)
-	local rayLength = direction.Magnitude
-	local ray = Ray.new(origin, direction)
-	workspace:DebugDrawRay(ray, color or Color3.new(1, 0, 0)) -- red line by default
-end
-local function getClosestRaycastTarget()
-	local origin = Camera.CFrame.Position
-	local directions = getRayDirections()
-
-	local rayParams = RaycastParams.new()
-	rayParams.FilterType = Enum.RaycastFilterType.Whitelist
-	rayParams.FilterDescendantsInstances = {workspace} -- Customize this as needed
-	rayParams.IgnoreWater = true
-
 	
+	local directions = {  
+		baseDir,  
+		(baseDir + (rightVec * math.tan(degToRad(RAY_ANGLE_OFFSET)))).Unit,  
+		(baseDir - (rightVec * math.tan(degToRad(RAY_ANGLE_OFFSET)))).Unit,  
+		(baseDir + (upVec * math.tan(degToRad(RAY_ANGLE_OFFSET)))).Unit,  
+		(baseDir - (upVec * math.tan(degToRad(RAY_ANGLE_OFFSET)))).Unit,  
+	}  
+	
+	return directions
+	
+	end
+	
+	-- RAYCAST DETECTION
+	local function updateRaycast()
+	local character = player.Character
+	if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+	
+	local origin = Camera.CFrame.Position  
+	local rayParams = RaycastParams.new()  
+	rayParams.FilterType = Enum.RaycastFilterType.Exclude  
+	rayParams.FilterDescendantsInstances = {character}  
+	rayParams.IgnoreWater = true  
+	
+	for _, direction in ipairs(getRayDirections()) do  
+		local result = workspace:Raycast(origin, direction * RAY_DISTANCE, rayParams)  
+	
+		if result and result.Instance then  
+			local hitCharacter = result.Instance:FindFirstAncestorOfClass("Model")  
+			local hitPlayer = Players:GetPlayerFromCharacter(hitCharacter)  
+	
+			if hitPlayer and hitPlayer ~= player then  
+				if currentTarget ~= hitCharacter then  
+					currentTarget = hitCharacter  
+					createOutline(currentTarget)  
+				end  
+				return  
+			end  
+		end  
+	end  
+	
+	currentTarget = nil  
+	removeOutline()
+	
+	end
 
-	local closestHit = nil
-	local closestDistance = math.huge
-
-	for _, direction in ipairs(directions) do
-		local result = workspace:Raycast(origin, direction * 1000, rayParams)
-		if result then
-			local distance = (origin - result.Position).Magnitude
-			if distance < closestDistance then
-				closestDistance = distance
-				closestHit = result
-			end
+	local function updateCameraLock()
+		if currentTarget then
+			cameraLocked = true
+		else
+			cameraLocked = false
 		end
 	end
 
-	if closestHit then
-		local target = closestHit.Instance
-		local character = target and target:FindFirstAncestorOfClass("Model")
-		if character and character:FindFirstChild("Humanoid") then
-			return character
+	local function updateCamera(dt)
+		updateCameraLock()
+	
+		if cameraLocked and currentTarget and currentTarget:FindFirstChild("HumanoidRootPart") then
+			Camera.CameraType = Enum.CameraType.Scriptable
+	
+			local targetHRP = currentTarget.HumanoidRootPart
+			local targetPos = targetHRP.Position
+	
+			-- Apply user rotation input
+			local yaw = rotateInput.X * rotationSpeed
+			local pitch = -rotateInput.Y * rotationSpeed
+			currentRotation = currentRotation * CFrame.Angles(0, math.rad(yaw), 0)
+	
+			local cameraPos = targetPos + currentRotation:VectorToWorldSpace(cameraOffset)
+			Camera.CFrame = CFrame.new(cameraPos, targetPos)
+		else
+			Camera.CameraType = defaultCameraType
 		end
 	end
 
-	return nil
-end
-
-
--- [Target Detection]
--- Update raycast for target detection
-local function updateRaycast()
-    if teleportEnabled or dashEnabled_2 then
-        local origin = Camera.CFrame.Position
-        local rayParams = RaycastParams.new()
-        rayParams.FilterType = Enum.RaycastFilterType.Exclude
-        rayParams.FilterDescendantsInstances = {character}
-        rayParams.IgnoreWater = true
-        
-        -- Raycasting in multiple directions for better target detection
-        for _, direction in ipairs(getRayDirections()) do
-            local result = workspace:Raycast(origin, direction * RAY_DISTANCE, rayParams)
-			local Fdir = direction * 1000
-			debugRay()
-            if result and result.Instance then
-                local hitCharacter = result.Instance:FindFirstAncestorOfClass("Model")
-                local hitPlayer = Players:GetPlayerFromCharacter(hitCharacter)
-                if hitPlayer and hitPlayer ~= player then
-                    if currentTarget ~= hitCharacter then
-                        currentTarget = hitCharacter
-                        createOutline(currentTarget)
-                    end
-                    return
-                end
-            end
-        end
-        currentTarget = nil
-        removeOutline()
-    end
-end
-
--- Update the camera position smoothly to follow the locked target
-local function updateCamera()
-	if not lockOnTarget then return end
-
-	local hrp = lockOnTarget:FindFirstChild("HumanoidRootPart")
-	if not hrp then return end
-
-	-- Desired camera position: behind and above the target
-	local targetPosition = hrp.Position
-	local offset = Vector3.new(0, 5, 20) -- height and distance behind
-
-	local desiredPosition = targetPosition + offset
-	local desiredCFrame = CFrame.new(desiredPosition, targetPosition)
-
-	-- Smooth camera movement
-	local smoothSpeed = 0.1 -- smaller = smoother
-	Camera.CFrame = Camera.CFrame:Lerp(desiredCFrame, smoothSpeed)
-end
-
--- Lock onto the target
-local function lockOn(character)
-	if character and character:FindFirstChild("HumanoidRootPart") then
-		lockOnTarget = character
+	local function onTouchMoved(input)
+		if mobileRotationActive and cameraLocked then
+			local delta = input.Delta
+			rotateInput = Vector2.new(delta.X, delta.Y)
+		end
 	end
-end
-
--- Unlock from the target
-local function unlock()
-    lockOnTarget = nil
-end
-
--- Handle touch movement for rotating the camera
-local function onTouchMoved(touch)
-    if not lockOnTarget then return end
-
-    if lastTouchPosition then
-        -- Calculate the change in touch position to rotate the camera
-        local delta = touch.Position - lastTouchPosition
-        local rotationSpeed = 0.5
-
-        -- Update the camera's rotation based on touch movement
-        local cameraRotation = CFrame.Angles(0, -delta.X * rotationSpeed, 0) -- Rotate around the Y-axis (horizontal)
-        Camera.CFrame = Camera.CFrame * cameraRotation
-    end
-
-    lastTouchPosition = touch.Position
-end
-
--- Reset touch position on touch end
-local function onTouchEnded(touch)
-    lastTouchPosition = nil
-end
-
--- Handle touch input for locking onto a target
-UIS.TouchTap:Connect(function()
-	local character = getClosestRaycastTarget()
-	if character then
-		lockOn(character)
+	
+	local function onTouchStart(input)
+		if input.UserInputType == Enum.UserInputType.Touch then
+			mobileRotationActive = true
+		end
 	end
-end)
-
--- Unlock from the target when tapping the screen with two fingers (example)
-UIS.TouchTap:Connect(function(_, position)
-	local touches = UIS.GetTouches()
-    if #touches > 1 then
-        unlock()
-    end
-end)
-
--- Run the camera update and target detection
-RunService.RenderStepped:Connect(function()
-	if lockOnTarget then
-		updateCamera()
+	
+	local function onTouchEnd(input)
+		if input.UserInputType == Enum.UserInputType.Touch then
+			mobileRotationActive = false
+			rotateInput = Vector2.new(0, 0)
+		end
 	end
-	updateRaycast() -- only if you need continuous ray updates
-end)
 
-
-
+	RunService.RenderStepped:Connect(updateCamera)
+UserInputService.TouchMoved:Connect(onTouchMoved)
+UserInputService.TouchStarted:Connect(onTouchStart)
+UserInputService.TouchEnded:Connect(onTouchEnd)
 
 -- [Teleport Function]
 function teleportToTarget()
@@ -664,7 +627,7 @@ RunService.Heartbeat:Connect(function()
 		flightdash = false
 	end
 
-	cf
+	
 end)
 
 -- flight
