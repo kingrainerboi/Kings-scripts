@@ -418,26 +418,24 @@ end
 
 -- Start flight: create physics
 function startFlight()
-	if bodyGyro or bodyVelocity then return end -- Prevent duplicates
+    if bodyGyro or bodyVelocity then return end -- Prevent duplicates
 
-	bodyGyro = Instance.new("BodyGyro")
-	bodyGyro.P = 9e4
-	bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
-	bodyGyro.CFrame = workspace.CurrentCamera.CFrame
-	bodyGyro.Parent = humanoidRootPart
+    bodyGyro = Instance.new("BodyGyro")
+    bodyGyro.P = 9e4
+    bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+    bodyGyro.CFrame = workspace.CurrentCamera.CFrame
+    bodyGyro.Parent = humanoidRootPart
 
-	bodyVelocity = Instance.new("BodyVelocity")
-	bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-	bodyVelocity.Velocity = Vector3.zero
-	bodyVelocity.Parent = humanoidRootPart
+    bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+    bodyVelocity.Velocity = Vector3.zero
+    bodyVelocity.Parent = humanoidRootPart
 end
-
 -- Stop flight: remove physics
 function stopFlight()
-	if bodyGyro then bodyGyro:Destroy() bodyGyro = nil end
-	if bodyVelocity then bodyVelocity:Destroy() bodyVelocity = nil end
+    if bodyGyro then bodyGyro:Destroy() bodyGyro = nil end
+    if bodyVelocity then bodyVelocity:Destroy() bodyVelocity = nil end
 end
-
 local function refreshFlightButton()
 	if not player:FindFirstChild("PlayerGui") then return end
 	local gui = player.PlayerGui:FindFirstChild("FlightGui")
@@ -454,27 +452,50 @@ local function refreshFlightButton()
 		end
 	end
 end
--- Movement logic
+-- Movement logic using RunService:BindToRenderStep
 RunService:BindToRenderStep("FlightControl", Enum.RenderPriority.Character.Value + 1, function()
-	if not flightEnabled_3 or not bodyVelocity or not bodyGyro then return end
+    if not flightEnabled_3 or not bodyVelocity or not bodyGyro then return end
 
-	local moveDir = humanoid.MoveDirection
-	if moveDir.Magnitude > 0 then
-		local cameraCF = workspace.CurrentCamera.CFrame
-		local cameraLook = cameraCF.LookVector
-		local cameraRight = cameraCF.RightVector
+    local moveDir = humanoid.MoveDirection
+    if moveDir.Magnitude > 0 then
+        local cameraCF = workspace.CurrentCamera.CFrame
+        local cameraLook = cameraCF.LookVector
+        local cameraRight = cameraCF.RightVector
 
-		local forward = moveDir:Dot(cameraLook)
-		local sideways = moveDir:Dot(cameraRight)
-		local moveVec = (cameraLook * forward) + (cameraRight * sideways)
+        local forward = moveDir:Dot(cameraLook)
+        local sideways = moveDir:Dot(cameraRight)
+        local moveVec = (cameraLook * forward) + (cameraRight * sideways)
 
-		bodyVelocity.Velocity = moveVec.Unit * speed
-	else
-		bodyVelocity.Velocity = Vector3.zero
-	end
+        bodyVelocity.Velocity = moveVec.Unit * speed
+    else
+        bodyVelocity.Velocity = Vector3.zero
+    end
 
-	bodyGyro.CFrame = workspace.CurrentCamera.CFrame
+    bodyGyro.CFrame = workspace.CurrentCamera.CFrame
 end)
+
+-- Function to reset the flight system on respawn
+local function setupFlightSystem(character)
+    humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+    humanoid = character:WaitForChild("Humanoid")
+    
+    -- Start flight or perform any other setup here
+    if flightEnabled_3 then
+        startFlight()  -- Start flight when character respawns
+    end
+end
+
+-- Connect to the player's respawn event
+player.CharacterAdded:Connect(function(character)
+    -- Reset the flight system when the player respawns
+    stopFlight()  -- Ensure flight is stopped before respawn
+    setupFlightSystem(character)  -- Re-apply flight system after respawn
+end)
+
+-- If the player already has a character when the script starts, set it up immediately
+if player.Character then
+    setupFlightSystem(player.Character)
+end
 
 local function Dash2()
 	if not dashEnabled_2 or dashCooldown or not currentTarget then return end
