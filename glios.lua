@@ -10,11 +10,10 @@ local humanoid = character:WaitForChild("Humanoid")
 local RunService = game:GetService("RunService")
 
 
-
 local player = game.Players.LocalPlayer
 
-local cameraAssistEnabled = false
-local cameraAssistStrength = 2.5 -- How fast the camera centers toward the target
+local cameraLockEnabled = false
+local CAMERA_LOCK_NAME = "HardLockCamera"
 
 -- [Player & Settings]
 local player = Players.LocalPlayer
@@ -219,6 +218,38 @@ local function createCrosshair()
 	
 	end
 	
+
+	local function forceCameraLock()
+		if not currentTarget or not currentTarget:FindFirstChild("HumanoidRootPart") then
+			RunService:UnbindFromRenderStep(CAMERA_LOCK_NAME)
+			cameraLockEnabled = false
+			return
+		end
+	
+		local camPos = Camera.CFrame.Position
+		local targetPos = currentTarget.HumanoidRootPart.Position
+	
+		local direction = (targetPos - camPos).Unit
+		local newCF = CFrame.new(camPos, camPos + direction)
+	
+		-- Overwrite camera rotation only (position remains the same)
+		Camera.CFrame = newCF
+	end
+
+	local function enableCameraLock()
+		if not cameraLockEnabled then
+			RunService:BindToRenderStep(CAMERA_LOCK_NAME, Enum.RenderPriority.Camera.Value + 1, forceCameraLock)
+			cameraLockEnabled = true
+		end
+	end
+
+	local function disableCameraLock()
+		RunService:UnbindFromRenderStep(CAMERA_LOCK_NAME)
+		cameraLockEnabled = false
+	end
+
+
+
 	-- RAYCAST DETECTION
 	local function updateRaycast()
 	local character = player.Character
@@ -241,6 +272,7 @@ local function createCrosshair()
 				if currentTarget ~= hitCharacter then  
 					currentTarget = hitCharacter  
 					createOutline(currentTarget)  
+					enableCameraLock()
 				end  
 				return  
 			end  
@@ -249,34 +281,9 @@ local function createCrosshair()
 	
 	currentTarget = nil  
 	removeOutline()
+	disableCameraLock()
 	
 	end
-
-	local function softLockCamera()
-		if not currentTarget or not currentTarget:FindFirstChild("HumanoidRootPart") then
-			RunService:UnbindFromRenderStep("SoftCameraLock")
-			return
-		end
-	
-		local camCF = Camera.CFrame
-		local camPos = camCF.Position
-		local rootPos = currentTarget.HumanoidRootPart.Position
-	
-		local targetDirection = (rootPos - camPos).Unit
-		local newDirection = camCF.LookVector:Lerp(targetDirection, cameraAssistStrength)
-	
-		if (camCF.LookVector - newDirection).Magnitude > 0.01 then
-			Camera.CFrame = CFrame.new(camPos, camPos + newDirection)
-		end
-	end
-	local function updateCameraAssist()
-		cameraAssistEnabled = currentTarget ~= nil
-	end
-
-	RunService:BindToRenderStep("SoftCameraLock", Enum.RenderPriority.Camera.Value + 1, function()
-		softLockCamera()
-	end)
-	
 	
 -- [Teleport Function]
 function teleportToTarget()
