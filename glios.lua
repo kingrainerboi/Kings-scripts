@@ -596,6 +596,7 @@ local function Ult()
 		hrp.CFrame = CFrame.new(teleportPos, targetHRP.Position)
 
 		-- Dash to target
+		stopFlight()
 		local direction = (targetHRP.Position - hrp.Position).Unit
 		local bv = Instance.new("BodyVelocity")
 		bv.MaxForce = Vector3.new(1, 1, 1) * 1e6
@@ -604,7 +605,9 @@ local function Ult()
 
 		local dashStart = tick()
 		while tick() - dashStart < 0.2 do -- short fast dash
-			if (targetHRP.Position - hrp.Position).Magnitude <= STOP_DISTANCE then break end
+			if (targetHRP.Position - hrp.Position).Magnitude <= STOP_DISTANCE then 
+				startFlight()
+				break end
 			RunService.Heartbeat:Wait()
 		end
 
