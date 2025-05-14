@@ -63,7 +63,7 @@ local function createFlightGui()
 
 	local button = Instance.new("TextButton")
 	button.Size = UDim2.new(0, 160, 0, 30)
-	button.Position = UDim2.new(1, -170, 1, 50)
+	button.Position = UDim2.new(1, -170, 1, 70)
 	button.AnchorPoint = Vector2.new(0, 1)
 	button.Text = "efly"
 	button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
