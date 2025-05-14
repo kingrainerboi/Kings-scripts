@@ -580,11 +580,12 @@ local function Ult()
 	local targetHRP = currentTarget:FindFirstChild("HumanoidRootPart")
 	if not targetHRP then ultCooldown = false return end
 
+	local startPosition = hrp.Position
 	local duration = 3 -- seconds
 	local dashSpeed = MAX_DASH_SPEED * 2 -- Faster dash
 	local radius = 10 -- radius around the target to teleport to
 	local startTime = tick()
-
+	
 	humanoid.AutoRotate = false
 
 	while tick() - startTime < duration do
@@ -613,6 +614,7 @@ local function Ult()
 
 		bv:Destroy()
 		task.wait(0.1) -- short pause between tele-dashes
+		hrp.CFrame = CFrame.new(startPosition) -- Teleport back
 	end
 
 	humanoid.AutoRotate = true
