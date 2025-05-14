@@ -88,9 +88,11 @@ local function createFlightGui()
 		if flightEnabled_3 then  
 			button.Text = "Fly: ON"  
 			button.BackgroundColor3 = Color3.fromRGB(0, 170, 0)  
+			startFlight()
 		else  
 			button.Text = "Fly: OFF"  
 			button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)  
+			stopFlight()
 		end  
 	end)
 end
