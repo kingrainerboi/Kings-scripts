@@ -259,26 +259,28 @@ end
 
 -- Update the camera position smoothly to follow the locked target
 local function updateCamera()
-    if lockOnTarget then
-        -- Get the position of the target's humanoid root part
-        local targetPosition = lockOnTarget:FindFirstChild("HumanoidRootPart").Position
-        
-        -- Set the camera's CFrame to follow the target with some offset
-        local desiredCFrame = CFrame.new(targetPosition + Vector3.new(0, 5, 20)) -- 20 studs behind target, adjust as needed
-        Camera.CFrame = CFrame.new(Camera.CFrame.Position, targetPosition) * desiredCFrame - desiredCFrame.Position
-        
-        -- Smooth movement (optional)
-        local smoothSpeed = 10
-        Camera.CFrame = Camera.CFrame:Lerp(desiredCFrame, smoothSpeed * RunService.Heartbeat:Wait())
-    end
+	if not lockOnTarget then return end
+
+	local hrp = lockOnTarget:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+
+	-- Desired camera position: behind and above the target
+	local targetPosition = hrp.Position
+	local offset = Vector3.new(0, 5, 20) -- height and distance behind
+
+	local desiredPosition = targetPosition + offset
+	local desiredCFrame = CFrame.new(desiredPosition, targetPosition)
+
+	-- Smooth camera movement
+	local smoothSpeed = 0.1 -- smaller = smoother
+	Camera.CFrame = Camera.CFrame:Lerp(desiredCFrame, smoothSpeed)
 end
 
 -- Lock onto the target
 local function lockOn(character)
-    if character and character:FindFirstChild("HumanoidRootPart") then
-        lockOnTarget = character
-        updateCamera()
-    end
+	if character and character:FindFirstChild("HumanoidRootPart") then
+		lockOnTarget = character
+	end
 end
 
 -- Unlock from the target
@@ -326,10 +328,10 @@ end)
 
 -- Run the camera update and target detection
 RunService.RenderStepped:Connect(function()
-    if lockOnTarget then
-        updateCamera()
-    end
-    updateRaycast()
+	if lockOnTarget then
+		updateCamera()
+	end
+	updateRaycast() -- only if you need continuous ray updates
 end)
 
 
