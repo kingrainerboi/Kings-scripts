@@ -169,12 +169,11 @@ local function createOutline(targetChar)
 	highlight.OutlineColor = Color3.fromRGB(255, 255, 0)
 	highlight.OutlineTransparency = 0
 	highlight.Parent = targetChar
-	outlinedTarget = targetChar -- NEW: set this
 end
 local function removeOutline()
 	if highlight then highlight:Destroy() highlight = nil end
-	outlinedTarget = nil -- NEW: clear this
 end
+
 -- [Ray Directions]
 local function degToRad(deg)
 	return deg * math.pi / 180
@@ -250,7 +249,7 @@ local function updateRaycast()
         for _, direction in ipairs(getRayDirections()) do
             local result = workspace:Raycast(origin, direction * RAY_DISTANCE, rayParams)
 			local Fdir = direction * 1000
-			debugRay(origin,Fdir)
+			debugRay()
             if result and result.Instance then
                 local hitCharacter = result.Instance:FindFirstAncestorOfClass("Model")
                 local hitPlayer = Players:GetPlayerFromCharacter(hitCharacter)
@@ -321,7 +320,13 @@ local function onTouchEnded(touch)
     lastTouchPosition = nil
 end
 
-
+-- Handle touch input for locking onto a target
+UIS.TouchTap:Connect(function()
+	local character = getClosestRaycastTarget()
+	if character then
+		lockOn(character)
+	end
+end)
 
 -- Unlock from the target when tapping the screen with two fingers (example)
 UIS.TouchTap:Connect(function(_, position)
@@ -331,16 +336,12 @@ UIS.TouchTap:Connect(function(_, position)
     end
 end)
 
+-- Run the camera update and target detection
 RunService.RenderStepped:Connect(function()
-	if outlinedTarget then
-		lockOn(outlinedTarget)
+	if lockOnTarget then
 		updateCamera()
-	else
-		unlock()
 	end
-
-	-- Leave this here if other functions depend on raycasting
-	updateRaycast()
+	updateRaycast() -- only if you need continuous ray updates
 end)
 
 
@@ -663,7 +664,7 @@ RunService.Heartbeat:Connect(function()
 		flightdash = false
 	end
 
-	
+	cf
 end)
 
 -- flight
