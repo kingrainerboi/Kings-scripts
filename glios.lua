@@ -45,7 +45,7 @@ local lastTouchPosition = nil
 local speed = 50
 local bodyGyro, bodyVelocity
 
-s
+
 
 -- [GUI Creation]
 local function createTeleportGui()
