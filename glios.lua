@@ -660,6 +660,14 @@ player.CharacterAdded:Connect(function()
 	RunService:BindToRenderStep("TargetRaycast", Enum.RenderPriority.Input.Value, updateRaycast)
 end)
 
+local function isInJoystickRegion(pos)
+	local screenSize = Camera.ViewportSize
+	local joystickSize = Vector2.new(250, 250) -- Adjust this if needed
+	local bottomLeft = Vector2.new(0, screenSize.Y - joystickSize.Y)
+	local region = Rect.new(bottomLeft, bottomLeft + joystickSize)
+	return region:Contains(pos)
+end
+
 -- [Touch Input Fix]
 UIS.TouchTap:Connect(function(touchPositions, processed)
 	if not processed then
