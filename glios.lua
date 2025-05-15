@@ -660,13 +660,16 @@ player.CharacterAdded:Connect(function()
 	createCrosshair()
 	RunService:BindToRenderStep("TargetRaycast", Enum.RenderPriority.Input.Value, updateRaycast)
 end)
+
 local joystickSize = Vector2.new(250, 250)
 
 local function isInJoystickRegion(pos)
 	local screenSize = Camera.ViewportSize
 	local bottomLeft = Vector2.new(0, screenSize.Y - joystickSize.Y)
-	local region = Rect.new(bottomLeft, bottomLeft + joystickSize)
-	return region:Contains(pos)
+	local topRight = bottomLeft + joystickSize
+
+	return pos.X >= bottomLeft.X and pos.X <= topRight.X
+	   and pos.Y >= bottomLeft.Y and pos.Y <= topRight.Y
 end
 
 UIS.TouchStarted:Connect(function(input, processed)
