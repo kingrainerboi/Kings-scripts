@@ -369,6 +369,7 @@ function teleportToTarget()
 	waypoint.Color = Color3.fromRGB(255, 0, 0)
 	waypoint.Parent = workspace
 
+	playSFX(5066021887,0.8)
 	hrp.CFrame = CFrame.new(targetPos, targetHRP.Position)
 	humanoid.AutoRotate = false
 	teleportCooldown = true
@@ -386,6 +387,10 @@ local function dashToTarget()
 	local hrp = character and character:FindFirstChild("HumanoidRootPart")
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	if not hrp or not humanoid then dashCooldown = false return end
+
+	
+	playSFX(3084314259, 0.8)
+	
 
 	local target = currentTarget -- Lock the target to prevent changes mid-dash
 	local targetHRP = target:FindFirstChild("HumanoidRootPart")
@@ -449,6 +454,8 @@ local function tpAndDash()
 	-- Follow locked target position, even if it moves
 	while tick() - start < timeout do
 		if not lockedTarget or not lockedTarget:FindFirstChild("HumanoidRootPart") then break end
+		playSFX(3084314259, 0.8)
+
 		local newTargetHRP = lockedTarget:FindFirstChild("HumanoidRootPart")
 		local newDirection = (newTargetHRP.Position - hrp.Position)
 		bv.Velocity = newDirection.Unit * MAX_DASH_SPEED
@@ -461,6 +468,7 @@ local function tpAndDash()
 	humanoid.AutoRotate = true
 
 	task.wait(0.1)
+	playSFX(5066021887,0.8)
 	hrp.CFrame = CFrame.new(startPosition) -- Teleport back
 
 	task.wait(COOLDOWN)
@@ -571,7 +579,7 @@ local function Dash2()
 		end
 		return
 	end
-
+	playSFX(6128977275, 0.8)
 	local lockedTarget = currentTarget
 	local targetHRP = lockedTarget:FindFirstChild("HumanoidRootPart")
 	if not targetHRP then
@@ -667,19 +675,21 @@ local function Ult()
 		local angle = math.rad(math.random(0, 360))
 		local offset = Vector3.new(math.cos(angle), 0, math.sin(angle)) * radius
 		local teleportPos = targetHRP.Position + offset + Vector3.new(0, 2, 0) -- slightly above ground
-
+		playSFX(5066021887,0.8)
 		hrp.CFrame = CFrame.new(teleportPos, targetHRP.Position)
 
 		-- Dash to target
 		stopFlight() -- Ensure flight is stopped before dashing
 		local direction = (targetHRP.Position - hrp.Position).Unit
 		local bv = Instance.new("BodyVelocity")
+		
 		bv.MaxForce = Vector3.new(1, 1, 1) * 1e6
 		bv.Velocity = direction * dashSpeed
 		bv.Parent = hrp
 
 		local dashStart = tick()
 		while tick() - dashStart < 0.2 do -- short fast dash
+			playSFX(6128977275, 0.8)
 			if (targetHRP.Position - hrp.Position).Magnitude <= STOP_DISTANCE then 
 				break
 			end
@@ -742,7 +752,7 @@ UIS.TouchStarted:Connect(function(input, processed)
 			end
 			if dashEnabled_2 then
 				dashToTarget()
-				playSFX(3084314259, 0.8)
+				
 			end
 		end
 	end
