@@ -671,6 +671,8 @@ end
 -- [Touch Input Fix]
 UIS.TouchTap:Connect(function(touchPositions, processed)
 	if not processed then
+		local touchPos = touchPositions[1]
+		if isInJoystickRegion(touchPos) then return end
 		
 		if ult then
 			Ult()
