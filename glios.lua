@@ -49,6 +49,22 @@ local speed = 60
 local bodyGyro, bodyVelocity
 
 
+-- Modular sound play function
+local function playSFX(id, volume)
+	local sound = Instance.new("Sound")
+	sound.SoundId = "rbxassetid://" .. tostring(id)
+	sound.Volume = volume or 1
+	sound.Parent = game:GetService("SoundService")
+	sound:Play()
+
+	sound.Ended:Connect(function()
+		sound:Destroy()
+	end)
+end
+	
+	
+
+
 
 -- [GUI Creation]
 local function createTeleportGui()
@@ -171,11 +187,11 @@ local function keler()
 		if kelerEnabled then  
 			button.Text = "Keler: ON"  
 			button.BackgroundColor3 = Color3.fromRGB(0, 170, 0)  
-			dashSpeed = 500
+			
 		else  
 			button.Text = "Keler: OFF"  
 			button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)  
-			dashSpeed = 180
+			
 		end  
 	end)
 end
@@ -726,14 +742,21 @@ UIS.TouchStarted:Connect(function(input, processed)
 			end
 			if dashEnabled_2 then
 				dashToTarget()
+				playSFX(3084314259, 0.8)
 			end
 		end
 	end
 end)
 
 RunService.Heartbeat:Connect(function()
+
+	if kelerEnabled then
+		MAX_DASH_SPEED = 500
+	else
+		MAX_DASH_SPEED = 180
+	end
 	if flightEnabled_3 and dashEnabled_2 and teleportEnabled then
-		ult = true
+		ult = true 
 	else
 	
 		if flightEnabled_3 and dashEnabled_2  then
