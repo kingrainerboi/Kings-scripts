@@ -380,7 +380,7 @@ local function onSpawn(character)
         wait(5)
 
         -- Block sounds while loading and running external script
-        if not muteEnabled then 
+        if not muteEnabled then
             task.spawn(function()
                 blockAndDeleteSoundsFor(5,{
                     "rbxassetid://14145625743" , 
@@ -388,10 +388,9 @@ local function onSpawn(character)
                     "rbxassetid://1837276045",
                     "rbxassetid://138653824465794"
                 })
-            
                 
             end)
-      end
+        end
 
         task.wait(0.5) -- allow blocker to start
 
@@ -408,10 +407,9 @@ local function onSpawn(character)
             
         
     end
+end
 
-
-    player.CharacterAdded:Connect(onSpawn)
-        if player.Character then
-         onSpawn(player.Character)
-    end
+player.CharacterAdded:Connect(onSpawn)
+if player.Character then
+    onSpawn(player.Character)
 end
