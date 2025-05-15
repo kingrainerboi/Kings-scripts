@@ -691,7 +691,7 @@ local function Ult()
 	if kelerEnabled then
 		duration = 7
 		radius = 4
-		dashSpeed = MAX_DASH_SPEED * 2.5
+		dashSpeed = MAX_DASH_SPEED * 2.25
 	else
 		dashSpeed = MAX_DASH_SPEED * 2
 		duration = 3.5
