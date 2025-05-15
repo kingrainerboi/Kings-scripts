@@ -14,7 +14,7 @@ local loadedScriptModel
 
 
 -- Global version variable
-_G.version = "v0.22"
+_G.version = "v0.23"
 
 local function createVersionLabel()
 	local gui = Instance.new("ScreenGui")
@@ -35,6 +35,22 @@ local function createVersionLabel()
 	label.Font = Enum.Font.SourceSans
 	label.Parent = gui
 end
+
+
+local function stopAllSoundsOnMute()
+    for i = #activeSounds, 1, -1 do
+        local entry = activeSounds[i]
+        local s = entry.sound
+        if s and s:IsA("Sound") and s:IsDescendantOf(game) then
+            entry.offset = s.TimePosition
+            s:Stop()
+        else
+            table.remove(activeSounds, i)
+        end
+    end
+end
+
+
 
 local function createAudioButton()
 	local gui = Instance.new("ScreenGui")
@@ -61,19 +77,6 @@ local function createAudioButton()
 	sound.Parent = game:GetService("SoundService")
 
 	
-
-    local function stopAllSoundsOnMute()
-        for i = #activeSounds, 1, -1 do
-            local entry = activeSounds[i]
-            local s = entry.sound
-            if s and s:IsA("Sound") and s:IsDescendantOf(game) then
-                entry.offset = s.TimePosition
-                s:Stop()
-            else
-                table.remove(activeSounds, i)
-            end
-        end
-    end
 
 	button.MouseButton1Click:Connect(function()
         muteEnabled = not muteEnabled
@@ -380,6 +383,7 @@ end
 local function onSpawn(character)
     createToggleButton()
     createAudioButton()
+    createVersionLabel()
     stopAllSounds()
 
     local humanoid = character:WaitForChild("Humanoid")
