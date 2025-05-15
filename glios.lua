@@ -683,9 +683,16 @@ local function Ult()
 	if not targetHRP then ultCooldown = false return end
 
 	local startPosition = hrp.Position -- store original position
+
 	local duration = 4 -- seconds
 	local dashSpeed = MAX_DASH_SPEED * 2 -- Faster dash
 	local radius = 7 -- radius around the target to teleport to
+
+	if kelerEnabled then
+		duration = 6
+		radius = 5
+	end
+	
 	local startTime = tick()
 	
 	humanoid.AutoRotate = false
@@ -780,11 +787,7 @@ end)
 
 RunService.Heartbeat:Connect(function()
 
-	if kelerEnabled then
-		MAX_DASH_SPEED = 500
-	else
-		MAX_DASH_SPEED = 180
-	end
+	
 	if flightEnabled_3 and dashEnabled_2 and teleportEnabled then
 		ult = true 
 	else
