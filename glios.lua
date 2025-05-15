@@ -345,6 +345,25 @@ local function createCrosshair()
 	
 	end
 	
+	local function playRandomSFX(...)
+		local soundIds = {...}
+		local player = Players.LocalPlayer
+		local character = player.Character or player.CharacterAdded:Wait()
+		local hrp = character:WaitForChild("HumanoidRootPart")
+	
+		if #soundIds > 0 then
+			local randomId = soundIds[math.random(1, #soundIds)]
+			local sound = Instance.new("Sound")
+			sound.SoundId = "rbxassetid://" .. tostring(randomId)
+			sound.Parent = hrp
+			sound.Volume = 3
+			sound:Play()
+			sound.Ended:Connect(function()
+				sound:Destroy()
+			end)
+		end
+	end
+	
 -- [Teleport Function]
 function teleportToTarget()
 	if teleportCooldown or not teleportEnabled or not currentTarget then return end
@@ -389,7 +408,7 @@ local function dashToTarget()
 	if not hrp or not humanoid then dashCooldown = false return end
 
 	
-	playSFX(3084314259, 0.8)
+	playSFX(3084314259, 2)
 	
 
 	local target = currentTarget -- Lock the target to prevent changes mid-dash
@@ -653,7 +672,7 @@ end
 local function Ult()
 	if not currentTarget or ultCooldown then return end
 	ultCooldown = true
-	playSFX(103552223389683,3)
+	playRandomSFX(103552223389683,89672861377061)
 
 	local character = player.Character
 	local hrp = character and character:FindFirstChild("HumanoidRootPart")
