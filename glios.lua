@@ -653,7 +653,7 @@ end
 local function Ult()
 	if not currentTarget or ultCooldown then return end
 	ultCooldown = true
-	playSFX(103552223389683,1)
+	playSFX(103552223389683,3)
 
 	local character = player.Character
 	local hrp = character and character:FindFirstChild("HumanoidRootPart")
