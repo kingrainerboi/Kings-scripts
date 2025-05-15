@@ -660,7 +660,7 @@ player.CharacterAdded:Connect(function()
 	createCrosshair()
 	RunService:BindToRenderStep("TargetRaycast", Enum.RenderPriority.Input.Value, updateRaycast)
 end)
-local joystickSize Vector2.new(250, 250)
+local joystickSize Vector2.new(250,250)
 local function isInJoystickRegion(pos)
 	
 	local screenSize = Camera.ViewportSize
