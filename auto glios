@@ -2,10 +2,84 @@ local Players = game:GetService("Players")
 local StarterGui = game:GetService("StarterGui")
 local RunService = game:GetService("RunService")
 
+
+
 local player = Players.LocalPlayer
+
+local muteEnabled = false
+local activeSounds = {}
 
 local isEnabled = true
 local loadedScriptModel
+
+
+local function createAudioButton()
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "AudioGui"
+	gui.ResetOnSpawn = false
+	gui.IgnoreGuiInset = true
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	gui.Parent = player:WaitForChild("PlayerGui")
+
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(0, 100, 0, 40)
+	button.Position = UDim2.new(1, -110, 0, 10)
+	button.AnchorPoint = Vector2.new(0, 0)
+	button.Text = "mute: OFF"
+	button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+	button.TextColor3 = Color3.new(1, 1, 1)
+	button.TextScaled = true
+	button.Parent = gui
+
+	local sound = Instance.new("Sound")
+	sound.Name = "BackgroundSound"
+	sound.Looped = true
+	sound.Volume = 1
+	sound.Parent = game:GetService("SoundService")
+
+	
+
+	button.MouseButton1Click:Connect(function()
+        muteEnabled = not muteEnabled
+    
+        if muteEnabled then
+            button.Text = "mute: ON"
+            button.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+    
+            for i = #activeSounds, 1, -1 do
+                local entry = activeSounds[i]
+                local s = entry.sound
+                if s and s:IsA("Sound") and s:IsDescendantOf(game) then
+                    entry.offset = s.TimePosition
+                    s:Stop()
+                else
+                    table.remove(activeSounds, i)
+                end
+            end
+    
+        else
+            button.Text = "mute: OFF"
+            button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+    
+            for i = #activeSounds, 1, -1 do
+                local entry = activeSounds[i]
+    
+                local resumed = Instance.new("Sound")
+                resumed.SoundId = "rbxassetid://" .. entry.id
+                resumed.Volume = entry.volume
+                resumed.TimePosition = entry.offset
+                resumed.Parent = game:GetService("SoundService")
+    
+                -- Replace old sound ref
+                entry.sound = resumed
+                entry.startTick = tick()
+    
+                resumed.Ended:Connect(entry.onEnded)
+                resumed:Play()
+            end
+        end
+    end)
+end
 
 -- Utility: Show bottom-right notification
 local function showBottomRightNotification(message)
@@ -77,17 +151,27 @@ local function stopAllSounds()
 end
 
 -- Block and delete sounds for a given duration (deletes existing sounds + blocks new ones)
-local function blockAndDeleteSoundsFor(duration)
-    -- Delete all existing sounds immediately
+local function blockAndDeleteSoundsFor(duration, excludeList)
+    -- Helper function to check if a SoundId is excluded
+    local function isExcluded(soundId)
+        for _, excludedId in ipairs(excludeList) do
+            if string.find(soundId, excludedId) then
+                return true
+            end
+        end
+        return false
+    end
+
+    -- Delete all existing sounds unless they're in the exclude list
     for _, sound in pairs(game:GetDescendants()) do
-        if sound:IsA("Sound") then
+        if sound:IsA("Sound") and not isExcluded(sound.SoundId) then
             sound:Destroy()
         end
     end
 
     local blocked = true
     local connection = game.DescendantAdded:Connect(function(descendant)
-        if blocked and descendant:IsA("Sound") then
+        if blocked and descendant:IsA("Sound") and not isExcluded(descendant.SoundId) then
             descendant:Destroy()
         end
     end)
@@ -173,19 +257,81 @@ local function LieFlatAndFloat(character, hrp, humanoid, floatHeight, floatDurat
     cleanupBodyMovers(hrp)
 end
 
--- Play sound effect helper
-local function playSFX(id, volume)
-    local sound = Instance.new("Sound")
-    sound.SoundId = "rbxassetid://" .. tostring(id)
-    sound.Volume = volume or 1
-    sound.Parent = game:GetService("SoundService")
-    sound:Play()
-    sound.Ended:Connect(function() sound:Destroy() end)
+
+local function playSFXList(ids, volume)
+    if not ids or #ids == 0 then return end
+
+    local index = 1
+
+    local function playNext()
+        if index > #ids then return end
+
+        local id = tostring(ids[index])
+        local sound = Instance.new("Sound")
+        sound.SoundId = "rbxassetid://" .. id
+        sound.Volume = muteEnabled and 0 or (volume or 1)
+        sound.TimePosition = 0
+        sound.Parent = game:GetService("SoundService")
+
+        local data = {
+            sound = sound,
+            id = id,
+            volume = volume or 1,
+            startTick = tick(),
+            offset = 0,
+            onEnded = function()
+                -- Clean up
+                for i, s in ipairs(activeSounds) do
+                    if s.sound == sound  then
+                        table.remove(activeSounds, i)
+                        break
+                    end
+                end
+                index = index + 1
+                playNext()
+            end
+        }
+
+        table.insert(activeSounds, data)
+
+        sound.Ended:Connect(data.onEnded)
+        sound:Play()
+    end
+
+    playNext()
 end
+
+local function playRandomSFXEvery10Seconds(...)
+	local soundIds = {...}
+	local player = Players.LocalPlayer
+	local character = player.Character or player.CharacterAdded:Wait()
+	local hrp = character:WaitForChild("HumanoidRootPart")
+
+	task.spawn(function()
+		while true do
+			task.wait(10 + math.random()) -- ~10 seconds with slight randomness
+
+			if #soundIds > 0 then
+				local randomId = soundIds[math.random(1, #soundIds)]
+				local sound = Instance.new("Sound")
+				sound.SoundId = "rbxassetid://" .. tostring(randomId)
+				sound.Parent = hrp
+				sound.Volume = 1
+				sound:Play()
+				sound.Ended:Connect(function()
+					sound:Destroy()
+				end)
+			end
+		end
+	end)
+end
+
+
 
 -- Main onSpawn handler
 local function onSpawn(character)
     createToggleButton()
+    createAudioButton()
     stopAllSounds()
 
     local humanoid = character:WaitForChild("Humanoid")
@@ -215,7 +361,10 @@ local function onSpawn(character)
 
         -- Block sounds while loading and running external script
         task.spawn(function()
-            blockAndDeleteSoundsFor(5)
+            blockAndDeleteSoundsFor(5,{
+                "rbxassetid://14145625743" , 
+                "rbxassetid://80650419746306"
+            })
             
         end)
 
@@ -223,8 +372,16 @@ local function onSpawn(character)
 
         task.spawn(function()
             
-            setfenv(loadstring(game:HttpGet("https://rawscripts.net/raw/a-literal-baseplate.-Glios-FE-19578")), env)()
+            
+            setfenv(loadstring(game:HttpGet('https://glot.io/snippets/gua2ntmbdm/raw/main.lua', true)), env)()
         end)
+        wait(2)
+        playSFXList({14145625743,80650419746306},0.8)
+        
+        wait(1)
+        playRandomSFXEvery10Seconds(104909608685735,86385138656281,116042450036642)
+            
+        
     end
 end
 

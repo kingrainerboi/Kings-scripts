@@ -174,7 +174,7 @@ local function keler()
 	local button = Instance.new("TextButton")  
 	button.Name = "keler"
 	button.Size = UDim2.new(0, 140, 0, 25)  -- slightly smaller
-	button.Position = UDim2.new(1, -150, 1, -180)  
+	button.Position = UDim2.new(1, -150, 1, -250)  
 	button.AnchorPoint = Vector2.new(0, 1)  
 	button.Text = "keler"  
 	button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)  
@@ -653,6 +653,7 @@ end
 local function Ult()
 	if not currentTarget or ultCooldown then return end
 	ultCooldown = true
+	playSFX(103552223389683,1)
 
 	local character = player.Character
 	local hrp = character and character:FindFirstChild("HumanoidRootPart")
