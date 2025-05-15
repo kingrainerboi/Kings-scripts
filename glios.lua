@@ -25,6 +25,7 @@ local COOLDOWN = 0.6
 local RAY_ANGLE_OFFSET = 5
 local STOP_DISTANCE = 5
 local TELEPORT_DISTANCE = 1
+local joystickSize Vector2.new(250, 250)
 
 -- [State]
 local currentTarget = nil
@@ -662,16 +663,15 @@ end)
 
 local function isInJoystickRegion(pos)
 	local screenSize = Camera.ViewportSize
-	local joystickSize = Vector2.new(250, 250) -- Adjust this if needed
 	local bottomLeft = Vector2.new(0, screenSize.Y - joystickSize.Y)
 	local region = Rect.new(bottomLeft, bottomLeft + joystickSize)
 	return region:Contains(pos)
 end
 
 -- [Touch Input Fix]
-UIS.TouchTap:Connect(function(touchPositions, processed)
-	if not processed then
-		local touchPos = touchPositions[1]
+UIS.TouchStarted:Connect(function(input, processed)
+	if not processed and input.UserInputType == Enum.UserInputType.Touch then
+		local touchPos = input.Position		
 		if isInJoystickRegion(touchPos) then return end
 		
 		if ult then
