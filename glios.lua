@@ -25,7 +25,7 @@ local COOLDOWN = 0.6
 local RAY_ANGLE_OFFSET = 5
 local STOP_DISTANCE = 5
 local TELEPORT_DISTANCE = 1
-local joystickSize Vector2.new(250, 250)
+
 
 -- [State]
 local currentTarget = nil
@@ -660,8 +660,9 @@ player.CharacterAdded:Connect(function()
 	createCrosshair()
 	RunService:BindToRenderStep("TargetRaycast", Enum.RenderPriority.Input.Value, updateRaycast)
 end)
-
+local joystickSize Vector2.new(250, 250)
 local function isInJoystickRegion(pos)
+	
 	local screenSize = Camera.ViewportSize
 	local bottomLeft = Vector2.new(0, screenSize.Y - joystickSize.Y)
 	local region = Rect.new(bottomLeft, bottomLeft + joystickSize)
