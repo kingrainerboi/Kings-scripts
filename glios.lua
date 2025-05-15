@@ -672,22 +672,23 @@ end
 UIS.TouchStarted:Connect(function(input, processed)
 	if not processed and input.UserInputType == Enum.UserInputType.Touch then
 		local touchPos = input.Position		
-		if isInJoystickRegion(touchPos) then return end
+		if isInJoystickRegion(touchPos) then 
 		
-		if ult then
-			Ult()
-		else
-			if flightdash then
-				Dash2()
-			end
-			if teleportEnabled and dashEnabled_2 then
-				tpAndDash()
+			if ult then
+				Ult()
 			else
-				if teleportEnabled then
-					teleportToTarget()
+				if flightdash then
+					Dash2()
 				end
-				if dashEnabled_2 then
-					dashToTarget()
+				if teleportEnabled and dashEnabled_2 then
+					tpAndDash()
+				else
+					if teleportEnabled then
+						teleportToTarget()
+					end
+					if dashEnabled_2 then
+						dashToTarget()
+					end
 				end
 			end
 		end
