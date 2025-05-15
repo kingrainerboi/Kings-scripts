@@ -683,9 +683,9 @@ local function Ult()
 	if not targetHRP then ultCooldown = false return end
 
 	local startPosition = hrp.Position -- store original position
-	local duration = 3 -- seconds
+	local duration = 4 -- seconds
 	local dashSpeed = MAX_DASH_SPEED * 2 -- Faster dash
-	local radius = 10 -- radius around the target to teleport to
+	local radius = 7 -- radius around the target to teleport to
 	local startTime = tick()
 	
 	humanoid.AutoRotate = false
