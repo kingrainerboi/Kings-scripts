@@ -684,9 +684,9 @@ local function Ult()
 
 	local startPosition = hrp.Position -- store original position
 
-	local duration = 4 -- seconds
+	local duration -- seconds
 	local dashSpeed = MAX_DASH_SPEED * 2 -- Faster dash
-	local radius = 7 -- radius around the target to teleport to
+	local radius  --radius around the target to teleport to
 
 	if kelerEnabled then
 		duration = 7
