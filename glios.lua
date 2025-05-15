@@ -15,15 +15,15 @@ local player = game.Players.LocalPlayer
 local cameraLockEnabled = false
 local CAMERA_LOCK_NAME = "SoftCameraLock"
 
-local ASSIST_STRENGTH = 0.45 -- 0.05 is soft, 1 is instant snap
+local ASSIST_STRENGTH = 0.35 -- 0.05 is soft, 1 is instant snap
 
 -- [Player & Settings]
 local player = Players.LocalPlayer
-local MAX_DASH_SPEED = 150
+local MAX_DASH_SPEED = 180
 local RAY_DISTANCE = 1000
 local COOLDOWN = 0.6
 local RAY_ANGLE_OFFSET = 5
-local STOP_DISTANCE = 3
+local STOP_DISTANCE = 5
 local TELEPORT_DISTANCE = 1
 
 -- [State]
@@ -42,7 +42,7 @@ local ult = false
 local lockOnTarget = nil  
 local lastTouchPosition = nil  
 -- [Flight Variables]
-local speed = 50
+local speed = 80
 local bodyGyro, bodyVelocity
 
 
