@@ -367,7 +367,6 @@ local function onSpawn(character)
     
         showItRefused()
         playSFX(138653824465794,2)
-        blockAndDeleteSoundsFor(2)
         stopAllSoundsOnMute()
     end
     )
