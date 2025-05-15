@@ -689,8 +689,11 @@ local function Ult()
 	local radius = 7 -- radius around the target to teleport to
 
 	if kelerEnabled then
-		duration = 6
-		radius = 5
+		duration = 7
+		radius = 3
+	else
+		duration = 3.5
+		radius = 6
 	end
 	
 	local startTime = tick()
