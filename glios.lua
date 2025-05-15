@@ -42,8 +42,10 @@ local returnReached = false
 local ult = false
 local lockOnTarget = nil  
 local lastTouchPosition = nil  
+local kelerEnabled = false
+
 -- [Flight Variables]
-local speed = 80
+local speed = 60
 local bodyGyro, bodyVelocity
 
 
@@ -59,7 +61,7 @@ local function createTeleportGui()
 
 	local button = Instance.new("TextButton")  
 	button.Size = UDim2.new(0, 160, 0, 30)  
-	button.Position = UDim2.new(1, -170, 1, -80)  
+	button.Position = UDim2.new(1, -170, 1, -110)  
 	button.AnchorPoint = Vector2.new(0, 1)  
 	button.Text = "etp"  
 	button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)  
@@ -89,7 +91,7 @@ local function createFlightGui()
 
 	local button = Instance.new("TextButton")  
 	button.Size = UDim2.new(0, 160, 0, 30)  
-	button.Position = UDim2.new(1, -170, 1, -130)  
+	button.Position = UDim2.new(1, -170, 1, -160)  
 	button.AnchorPoint = Vector2.new(0, 1)  
 	button.Text = "efly"  
 	button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)  
@@ -125,7 +127,7 @@ local function createDashGui()
 
 	local button = Instance.new("TextButton")  
 	button.Size = UDim2.new(0, 160, 0, 30)  
-	button.Position = UDim2.new(1, -170, 1, -180)  
+	button.Position = UDim2.new(1, -170, 1, -210)  
 	button.AnchorPoint = Vector2.new(0, 1)  
 	button.Text = "edash"  
 	button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)  
@@ -141,6 +143,39 @@ local function createDashGui()
 		else  
 			button.Text = "Dash: OFF"  
 			button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)  
+		end  
+	end)
+end
+
+local function keler()
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "kelerGui"
+	gui.ResetOnSpawn = false
+	gui.IgnoreGuiInset = true
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	gui.Parent = player:WaitForChild("PlayerGui")
+
+	local button = Instance.new("TextButton")  
+	button.Name = "keler"
+	button.Size = UDim2.new(0, 140, 0, 25)  -- slightly smaller
+	button.Position = UDim2.new(1, -150, 1, -180)  
+	button.AnchorPoint = Vector2.new(0, 1)  
+	button.Text = "keler"  
+	button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)  
+	button.TextColor3 = Color3.new(1, 1, 1)  
+	button.TextScaled = true  
+	button.Parent = gui  
+
+	button.MouseButton1Click:Connect(function()  
+		kelerEnabled = not kelerEnabled  
+		if kelerEnabled then  
+			button.Text = "Keler: ON"  
+			button.BackgroundColor3 = Color3.fromRGB(0, 170, 0)  
+			dashSpeed = 500
+		else  
+			button.Text = "Keler: OFF"  
+			button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)  
+			dashSpeed = 180
 		end  
 	end)
 end
@@ -654,6 +689,8 @@ createCrosshair()
 createTeleportGui()
 createFlightGui()
 createDashGui()
+keler()
+
 RunService:BindToRenderStep("TargetRaycast", Enum.RenderPriority.Input.Value, updateRaycast)
 
 player.CharacterAdded:Connect(function()
