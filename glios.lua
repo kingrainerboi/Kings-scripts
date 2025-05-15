@@ -660,37 +660,32 @@ player.CharacterAdded:Connect(function()
 	createCrosshair()
 	RunService:BindToRenderStep("TargetRaycast", Enum.RenderPriority.Input.Value, updateRaycast)
 end)
-local joystickSize Vector2.new(250,250)
+local joystickSize = Vector2.new(250, 250)
+
 local function isInJoystickRegion(pos)
-	
 	local screenSize = Camera.ViewportSize
 	local bottomLeft = Vector2.new(0, screenSize.Y - joystickSize.Y)
 	local region = Rect.new(bottomLeft, bottomLeft + joystickSize)
 	return region:Contains(pos)
 end
 
--- [Touch Input Fix]
 UIS.TouchStarted:Connect(function(input, processed)
 	if not processed and input.UserInputType == Enum.UserInputType.Touch then
-		local touchPos = input.Position		
-		if isInJoystickRegion(touchPos) then 
-		
-			if ult then
-				Ult()
-			else
-				if flightdash then
-					Dash2()
-				end
-				if teleportEnabled and dashEnabled_2 then
-					tpAndDash()
-				else
-					if teleportEnabled then
-						teleportToTarget()
-					end
-					if dashEnabled_2 then
-						dashToTarget()
-					end
-				end
+		local touchPos = input.Position
+		if isInJoystickRegion(touchPos) then return end
+
+		if ult then
+			Ult()
+		elseif flightdash then
+			Dash2()
+		elseif teleportEnabled and dashEnabled_2 then
+			tpAndDash()
+		else
+			if teleportEnabled then
+				teleportToTarget()
+			end
+			if dashEnabled_2 then
+				dashToTarget()
 			end
 		end
 	end
