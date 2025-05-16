@@ -285,21 +285,27 @@ local function createCrosshair()
 	
 
 
-local function sendChatMessage(message)
-	if typeof(message) == "string" and message ~= "" and currentTarget then
-		local targetPlayer = Players:GetPlayerFromCharacter(currentTarget)
-		if targetPlayer then
-			local commandMessage = "/whisper " .. targetPlayer.Name .. " " .. message
-			print("Sending message:", commandMessage)
-			generalChannel:SendAsync(commandMessage)
-		else
-			print("sendChatMessage: targetPlayer is nil")
-		end
-	else
-		print("sendChatMessage: invalid message or currentTarget")
-	end
-end
+		
 
+	local function sendChatMessage(message)
+		if typeof(message) == "string" and message ~= "" and currentTarget then
+			local targetPlayer = Players:GetPlayerFromCharacter(currentTarget)
+			if targetPlayer then
+				-- Step 1: Start whisper session
+				local whisperCommand = "/whisper " .. targetPlayer.Name
+				print("Sending command:", whisperCommand)
+				generalChannel:SendAsync(whisperCommand)
+
+				-- Step 2: Send the actual message
+				print("Sending message:", message)
+				generalChannel:SendAsync(message)
+			else
+				print("sendChatMessage: targetPlayer is nil")
+			end
+		else
+			print("sendChatMessage: invalid message or currentTarget")
+		end
+	end
 
 
 	local function softLockCamera()
