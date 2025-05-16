@@ -53,14 +53,9 @@ local bodyGyro, bodyVelocity
 local TextChatService = game:GetService("TextChatService")
 local generalChannel = TextChatService:WaitForChild("TextChannels"):WaitForChild("RBXGeneral")
 
-local function sendChatMessage(message)
-	if typeof(message) == "string" and message ~= "" then
-		generalChannel:SendAsync(message)
-	end
-end
 
--- Example usage:
-sendChatMessage("hi")
+
+
 
 -- Modular sound play function
 local function playSFX(id, volume)
@@ -288,6 +283,28 @@ local function createCrosshair()
 	
 	end
 	
+
+	local function sendChatMessage(message)
+		if typeof(currentTarget) == "Instance" and currentTarget:IsA("Player") and typeof(message) == "string" and message ~= "" then
+			-- Randomize message by adding slight random spaces/punctuation between words
+			local words = {}
+			for word in message:gmatch("%S+") do
+				table.insert(words, word)
+			end
+	
+			local randomizedMessage = ""
+			for i, word in ipairs(words) do
+				randomizedMessage = randomizedMessage .. word
+				if i < #words then
+					local options = {" ", " ", ".", ",", ""}
+					randomizedMessage = randomizedMessage .. options[math.random(#options)]
+				end
+			end
+	
+			-- Use the default whisper system to send to currentTarget
+			game:GetService("Chat"):Chat(currentTarget.Character or currentTarget, randomizedMessage, Enum.ChatColor.White)
+		end
+	end
 
 	local function softLockCamera()
 		if not currentTarget or not currentTarget:FindFirstChild("HumanoidRootPart") then
@@ -701,8 +718,8 @@ local function Ult()
 	if not currentTarget or ultCooldown then return end
 	ultCooldown = true
 	playRandomSFX(
-		{SoundId = 103552223389683, Action = function() sendChatMessage("NOTHING BUT SCRAP!") end},
-		{SoundId = 89672861377061, Action = function() sendChatMessage("ENOUGH!") end}
+		{SoundId = 103552223389683, Action = function() sendChatMessage("ENOUGH") end},
+		{SoundId = 89672861377061, Action = function() sendChatMessage("NOTHING BUT SCRAP") end}
 	)
 	local character = player.Character
 	local hrp = character and character:FindFirstChild("HumanoidRootPart")
