@@ -285,8 +285,8 @@ local function createCrosshair()
 	
 
 	local function sendChatMessage(message)
-		if typeof(currentTarget) == "Instance" and currentTarget:IsA("Player") and typeof(message) == "string" and message ~= "" then
-			-- Randomize message by adding slight random spaces/punctuation between words
+		if typeof(message) == "string" and message ~= "" and typeof(currentTarget) == "Instance" and currentTarget:IsA("Player") then
+			-- Randomize message slightly
 			local words = {}
 			for word in message:gmatch("%S+") do
 				table.insert(words, word)
@@ -301,8 +301,10 @@ local function createCrosshair()
 				end
 			end
 	
-			-- Use the default whisper system to send to currentTarget
-			game:GetService("Chat"):Chat(currentTarget.Character or currentTarget, randomizedMessage, Enum.ChatColor.White)
+			-- Format the whisper command with currentTarget's name
+			local commandMessage = "/whisper " .. currentTarget.Name .. " " .. randomizedMessage
+	
+			generalChannel:SendAsync(commandMessage)
 		end
 	end
 
