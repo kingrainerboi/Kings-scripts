@@ -285,35 +285,24 @@ local function createCrosshair()
 	
 
 
-
-
 local function sendChatMessage(message)
-
 	if typeof(message) == "string" and message ~= "" and currentTarget then
 		local targetPlayer = Players:GetPlayerFromCharacter(currentTarget)
 		if targetPlayer then
-			-- Randomize message slightly
-			local words = {}
-			for word in message:gmatch("%S+") do
-				table.insert(words, word)
-			end
-
-			local randomizedMessage = ""
-			for i, word in ipairs(words) do
-				randomizedMessage = randomizedMessage .. word
-				if i < #words then
-					local options = {" ", " ", ".", ",", ""}
-					randomizedMessage = randomizedMessage .. options[math.random(#options)]
-				end
-			end
-
-			-- Format the whisper command with the player's name
-			local commandMessage = "/whisper " .. targetPlayer.Name .. " " .. randomizedMessage
-
+			local commandMessage = "/whisper " .. targetPlayer.Name .. " " .. message
+			print("Sending message:", commandMessage)
 			generalChannel:SendAsync(commandMessage)
+		else
+			print("sendChatMessage: targetPlayer is nil")
 		end
+	else
+		print("sendChatMessage: invalid message or currentTarget")
 	end
-end	local function softLockCamera()
+end
+
+
+
+	local function softLockCamera()
 		if not currentTarget or not currentTarget:FindFirstChild("HumanoidRootPart") then
 			RunService:UnbindFromRenderStep(CAMERA_LOCK_NAME)
 			cameraLockEnabled = false
