@@ -14,7 +14,7 @@ local loadedScriptModel
 
 
 -- Global version variable
-_G.version = "v0.24"
+_G.version = "v0.25"
 
 local function createVersionLabel()
 	local gui = Instance.new("ScreenGui")
@@ -34,6 +34,31 @@ local function createVersionLabel()
 	label.TextScaled = true
 	label.Font = Enum.Font.SourceSans
 	label.Parent = gui
+end
+
+local function sendChatMessage(message)
+    if typeof(message) == "string" and message ~= "" then
+        local symbols = {"!", "?", "@", "#", "$", "%", "&"}
+        local words = {}
+
+        -- Split the message into words
+        for word in message:gmatch("%S+") do
+            table.insert(words, word)
+        end
+
+        -- Rebuild message with random symbols between words
+        local randomizedMessage = ""
+        for i, word in ipairs(words) do
+            randomizedMessage = randomizedMessage .. word
+            if i < #words then
+                -- Add a random symbol + a space
+                randomizedMessage = randomizedMessage .. symbols[math.random(#symbols)] .. " "
+            end
+        end
+
+        generalChannel:SendAsync(randomizedMessage)
+        print("Sent message: " .. randomizedMessage)
+    end
 end
 
 
@@ -353,7 +378,7 @@ local function playSFXList(ids, volume)
 end
 
 local function playRandomSFXEvery10Seconds(...)
-	local soundIds = {...}
+	local soundData = {...}
 	local player = Players.LocalPlayer
 	local character = player.Character or player.CharacterAdded:Wait()
 	local hrp = character:WaitForChild("HumanoidRootPart")
@@ -362,13 +387,19 @@ local function playRandomSFXEvery10Seconds(...)
 		while true do
 			task.wait(13 + math.random()) -- ~10 seconds with slight randomness
 
-			if #soundIds > 0 then
-				local randomId = soundIds[math.random(1, #soundIds)]
+			if #soundData > 0 then
+				local randomEntry = soundData[math.random(1, #soundData)]
 				local sound = Instance.new("Sound")
-				sound.SoundId = "rbxassetid://" .. tostring(randomId)
+				sound.SoundId = "rbxassetid://" .. tostring(randomEntry.SoundId)
 				sound.Parent = hrp
 				sound.Volume = 1
 				sound:Play()
+
+				-- Run action if present and a function
+				if randomEntry.Action and typeof(randomEntry.Action) == "function" then
+					randomEntry.Action()
+				end
+
 				sound.Ended:Connect(function()
 					sound:Destroy()
 				end)
@@ -442,7 +473,11 @@ local function onSpawn(character)
         playSFXList({1837276045,14145625743,80650419746306},0.8)
         
         wait(1)
-        playRandomSFXEvery10Seconds(104909608685735,86385138656281,116042450036642)
+        playRandomSFXEvery10Seconds(
+	{SoundId = 104909608685735, Action = function() sendChatMessage("test message 1") end},
+	{SoundId = 86385138656281, Action = function() sendChatMessage("test message 2") end},
+	{SoundId = 116042450036642, Action = function() sendChatMessage("test message 3") end}
+)
             
         
     end
