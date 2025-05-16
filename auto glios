@@ -422,8 +422,15 @@ local function onSpawn(character)
     local hrp = character:WaitForChild("HumanoidRootPart")
 
     humanoid.Died:Connect(function()
+        task.spawn(
+            function()
+                sendChatMessage("How can this be...")
+                task.wait(1)
+                sendChatMessage("i REFUSE")
+
         
-        sendChatMessage("how can this be...")
+            end)
+        
         showItRefused()
         playSFX(138653824465794,2)
         stopAllSoundsOnMute()
