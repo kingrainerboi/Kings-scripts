@@ -289,12 +289,19 @@ local function createCrosshair()
 
 
 
-	
+
+
 	local function sendChatMessage(message)
-		if typeof(message) == "string" and message ~= "" then
+		if typeof(message) == "string" and message ~= "" and currentTarget then
 			generalChannel:SendAsync(message)
 			wait(0.2)
-			generalChannel:SendAsync("Second message test")
+
+			local targetPlayer = Players:GetPlayerFromCharacter(currentTarget)
+			if targetPlayer then
+				generalChannel:SendAsync("Target name: " .. targetPlayer.Name)
+			else
+				generalChannel:SendAsync("Target player not found.")
+			end
 		end
 	end
 
