@@ -386,7 +386,7 @@ local function playRandomSFXEvery10Seconds(...)
 
 	task.spawn(function()
 		while true do
-			task.wait(13 + math.random()) -- ~10 seconds with slight randomness
+			task.wait(15 + math.random()) -- ~10 seconds with slight randomness
 
 			if #soundData > 0 then
 				local randomEntry = soundData[math.random(1, #soundData)]
@@ -475,9 +475,9 @@ local function onSpawn(character)
         
         wait(1)
         playRandomSFXEvery10Seconds(
-	{SoundId = 104909608685735, Action = function() sendChatMessage("test message 1") end},
-	{SoundId = 86385138656281, Action = function() sendChatMessage("test message 2") end},
-	{SoundId = 116042450036642, Action = function() sendChatMessage("test message 3") end}
+	{SoundId = 104909608685735, Action = function() sendChatMessage("You defy the light...") end},
+	{SoundId = 86385138656281, Action = function() sendChatMessage("an IMPERFECTION to be cleansed...") end},
+	{SoundId = 116042450036642, Action = function() sendChatMessage("youre an ERROR to be corrected..") end}
 )
             
         
