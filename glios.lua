@@ -293,6 +293,8 @@ local function createCrosshair()
 	local function sendChatMessage(message)
 		if typeof(message) == "string" and message ~= "" then
 			generalChannel:SendAsync(message)
+			wait(0.2)
+			generalChannel:SendAsync("Second message test")
 		end
 	end
 
