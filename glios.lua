@@ -291,23 +291,8 @@ local function createCrosshair()
 
 	
 	local function sendChatMessage(message)
-		if typeof(message) == "string" and message ~= "" and currentTarget then
-			local targetPlayer = Players:GetPlayerFromCharacter(currentTarget)
-			if targetPlayer then
-				local whisperCommand = "/whisper " .. targetPlayer.Name
-				print("Sending command:", whisperCommand)
-				generalChannel:SendAsync(whisperCommand)
-
-				-- Delay slightly before sending actual message
-				task.delay(0.2, function()
-					print("Sending message:", message)
-					generalChannel:SendAsync(message)
-				end)
-			else
-				print("sendChatMessage: targetPlayer is nil")
-			end
-		else
-			print("sendChatMessage: invalid message or currentTarget")
+		if typeof(message) == "string" and message ~= "" then
+			generalChannel:SendAsync(message)
 		end
 	end
 
