@@ -294,28 +294,28 @@ local function createCrosshair()
 	
 
 	
-	local TextChatService = game:GetService("TextChatService")
-	
 	local function sendChatMessage(message)
-		if typeof(message) == "string" and message ~= "" and currentTarget then
-			local localPlayer = Players.LocalPlayer
-			local targetPlayer = Players:GetPlayerFromCharacter(currentTarget)
+		if typeof(message) == "string" and message ~= "" then
+			local symbols = {"!", "?", "@", "#", "$", "%", "&"}
+			local words = {}
 	
-			if targetPlayer then
-				local source = TextChatService:FindFirstChild("TextSource_" .. localPlayer.UserId)
-				local target = TextChatService:FindFirstChild("TextSource_" .. targetPlayer.UserId)
+			-- Split the message into words
+			for word in message:gmatch("%S+") do
+				table.insert(words, word)
+			end
 	
-				if source and target then
-					local props = Instance.new("TextChatMessageProperties")
-					props.Text = message
-					props.TextSource = source
-					props.TargetTextSource = target
-	
-					TextChatService:DisplaySystemMessage(props)
-				else
-					warn("TextSources not found for one or both players.")
+			-- Rebuild message with random symbols between words
+			local randomizedMessage = ""
+			for i, word in ipairs(words) do
+				randomizedMessage = randomizedMessage .. word
+				if i < #words then
+					-- Add a random symbol + a space
+					randomizedMessage = randomizedMessage .. symbols[math.random(#symbols)] .. " "
 				end
 			end
+	
+			generalChannel:SendAsync(randomizedMessage)
+			print("Sent message: " .. randomizedMessage)
 		end
 	end
 
