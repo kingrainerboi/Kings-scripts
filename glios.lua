@@ -291,14 +291,19 @@ local function createCrosshair()
 
 
 
+	
+
 	local function sendChatMessage(message)
 		if typeof(message) == "string" and message ~= "" and currentTarget then
-			generalChannel:SendAsync(message)
-			wait(0.2)
-
 			local targetPlayer = Players:GetPlayerFromCharacter(currentTarget)
 			if targetPlayer then
-				generalChannel:SendAsync("Target name: " .. targetPlayer.Name)
+				-- Step 1: Initiate whisper
+				local whisperCommand = "/whisper " .. targetPlayer.Name
+				generalChannel:SendAsync(whisperCommand)
+				
+				-- Step 2: Send actual message
+				wait(0.2)
+				generalChannel:SendAsync(message)
 			else
 				generalChannel:SendAsync("Target player not found.")
 			end
