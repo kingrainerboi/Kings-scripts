@@ -288,6 +288,7 @@ local function createCrosshair()
 
 
 local function sendChatMessage(message)
+
 	if typeof(message) == "string" and message ~= "" and currentTarget then
 		local targetPlayer = Players:GetPlayerFromCharacter(currentTarget)
 		if targetPlayer then
@@ -723,7 +724,7 @@ end
 local function Ult()
 	if not currentTarget or ultCooldown then return end
 	ultCooldown = true
-	sendChatMessage("ENOUGH")
+	
 	playRandomSFX(
 		{SoundId = 103552223389683, Action = function() sendChatMessage("ENOUGH") end},
 		{SoundId = 89672861377061, Action = function() sendChatMessage("NOTHING BUT SCRAP") end}
