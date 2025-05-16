@@ -878,6 +878,8 @@ UIS.TouchStarted:Connect(function(input, processed)
 end)
 
 local function onSpawn(character)
+	playSFX(18685115708,1)
+
 
 	if kelerEnabled then
 
