@@ -15,7 +15,7 @@ local loadedScriptModel
 
 
 -- Global version variable
-_G.version = "v0.3"
+_G.version = "v0.31"
 
 local function createVersionLabel()
 	local gui = Instance.new("ScreenGui")
@@ -428,6 +428,9 @@ local function monitorSound()
 	end)
 end
 
+RunService.Heartbeat:Connect(function()
+    monitorSound()
+end)
 
 -- Main onSpawn handler
 local function onSpawn(character)
@@ -519,6 +522,7 @@ local function onSpawn(character)
         
     end
 end
+
 
 
 
