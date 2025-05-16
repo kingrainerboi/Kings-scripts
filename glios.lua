@@ -286,24 +286,10 @@ local function createCrosshair()
 
 	local function sendChatMessage(message)
 		if typeof(message) == "string" and message ~= "" and typeof(currentTarget) == "Instance" and currentTarget:IsA("Player") then
-			-- Randomize message slightly
-			local words = {}
-			for word in message:gmatch("%S+") do
-				table.insert(words, word)
-			end
-	
-			local randomizedMessage = ""
-			for i, word in ipairs(words) do
-				randomizedMessage = randomizedMessage .. word
-				if i < #words then
-					local options = {" ", " ", ".", ",", ""}
-					randomizedMessage = randomizedMessage .. options[math.random(#options)]
-				end
-			end
-	
-			-- Format the whisper command with currentTarget's name
-			local commandMessage = "/whisper " .. currentTarget.Name .. " " .. randomizedMessage
-	
+			local commandMessage = "/whisper " .. currentTarget.Name .. " " .. message
+			
+			print("Sending message:", commandMessage)  -- Log to console
+			
 			generalChannel:SendAsync(commandMessage)
 		end
 	end
