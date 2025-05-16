@@ -48,6 +48,19 @@ local kelerEnabled = false
 local speed = 60
 local bodyGyro, bodyVelocity
 
+-- LocalScript in StarterPlayerScripts
+
+local TextChatService = game:GetService("TextChatService")
+local generalChannel = TextChatService:WaitForChild("TextChannels"):WaitForChild("RBXGeneral")
+
+local function sendChatMessage(message)
+	if typeof(message) == "string" and message ~= "" then
+		generalChannel:SendAsync(message)
+	end
+end
+
+-- Example usage:
+sendChatMessage("hi")
 
 -- Modular sound play function
 local function playSFX(id, volume)
@@ -345,24 +358,39 @@ local function createCrosshair()
 	
 	end
 	
+	local Players = game:GetService("Players")
+
 	local function playRandomSFX(...)
-		local soundIds = {...}
+		local soundData = {...}
 		local player = Players.LocalPlayer
 		local character = player.Character or player.CharacterAdded:Wait()
 		local hrp = character:WaitForChild("HumanoidRootPart")
 	
-		if #soundIds > 0 then
-			local randomId = soundIds[math.random(1, #soundIds)]
+		if #soundData > 0 then
+			local randomEntry = soundData[math.random(1, #soundData)]
+			
 			local sound = Instance.new("Sound")
-			sound.SoundId = "rbxassetid://" .. tostring(randomId)
+			sound.SoundId = "rbxassetid://" .. tostring(randomEntry.SoundId)
 			sound.Parent = hrp
 			sound.Volume = 3
 			sound:Play()
+	
+			-- If there is an action, run it now (or you can run it at sound end)
+			if randomEntry.Action and typeof(randomEntry.Action) == "function" then
+				randomEntry.Action()
+			end
+	
 			sound.Ended:Connect(function()
 				sound:Destroy()
 			end)
 		end
 	end
+	
+	-- Example usage:
+	
+	
+
+	
 	
 -- [Teleport Function]
 function teleportToTarget()
@@ -672,8 +700,10 @@ end
 local function Ult()
 	if not currentTarget or ultCooldown then return end
 	ultCooldown = true
-	playRandomSFX(103552223389683,89672861377061)
-
+	playRandomSFX(
+		{SoundId = 103552223389683, Action = function() sendChatMessage("NOTHING BUT SCRAP!") end},
+		{SoundId = 89672861377061, Action = function() sendChatMessage("ENOUGH!") end}
+	)
 	local character = player.Character
 	local hrp = character and character:FindFirstChild("HumanoidRootPart")
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
