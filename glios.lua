@@ -833,40 +833,7 @@ end
 
 
 
--- Function to create GUI if not exists
-local function createKelerGui()
-	local gui = player:WaitForChild("PlayerGui"):FindFirstChild("KelerGui")
-	if not gui then
-		gui = Instance.new("ScreenGui")
-		gui.Name = "KelerGui"
-		gui.Parent = player:WaitForChild("PlayerGui")
 
-		local label = Instance.new("TextLabel")
-		label.Name = "KelerStatus"
-		label.Size = UDim2.new(0, 200, 0, 50)
-		label.Position = UDim2.new(0, 100, 0, 100)
-		label.TextScaled = true
-		label.Parent = gui
-	end
-end
-
-createKelerGui()
-
-local label = player:WaitForChild("PlayerGui"):WaitForChild("KelerGui"):WaitForChild("KelerStatus")
-local lastState = nil
-
--- Heartbeat loop to update GUI when value changes
-RunService.Heartbeat:Connect(function()
-	if kelerEnabled ~= lastState then
-		label.Text = tostring(kelerEnabled)
-		lastState = kelerEnabled
-	end
-end)
-
--- Example: toggle the variable after 5 seconds
-task.delay(5, function()
-	kelerEnabled = false
-end)
 
 
 -- [Startup]

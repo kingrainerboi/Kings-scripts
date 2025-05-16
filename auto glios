@@ -414,26 +414,6 @@ end
 
 
 
--- LocalScript B
-local RunService = game:GetService("RunService")
-local player = game.Players.LocalPlayer
-
--- Wait for the GUI and Label to exist
-local function getLabel()
-	local gui = player:WaitForChild("PlayerGui"):WaitForChild("KelerGui")
-	return gui:WaitForChild("KelerStatus")
-end
-
-local label = getLabel()
-
--- Monitor continuously
-RunService.Heartbeat:Connect(function()
-	local text = label.Text
-	kelerEnabled = (text == "true")
-
-	-- Do something with the value
-	print("Heartbeat check — kelerEnabled is:", kelerEnabled)
-end)
 
 -- Main onSpawn handler
 local function onSpawn(character)
