@@ -15,7 +15,7 @@ local loadedScriptModel
 
 
 -- Global version variable
-_G.version = "v0.27"
+_G.version = "v0.28"
 
 local function createVersionLabel()
 	local gui = Instance.new("ScreenGui")
@@ -489,7 +489,8 @@ local function onSpawn(character)
         playRandomSFXEvery10Seconds(
 	{SoundId = 104909608685735, Action = function() sendChatMessage("You defy the light...") end},
 	{SoundId = 86385138656281, Action = function() sendChatMessage("an IMPERFECTION to be cleansed...") end},
-	{SoundId = 116042450036642, Action = function() sendChatMessage("youre an ERROR to be corrected..") end}
+	{SoundId = 116042450036642, Action = function() sendChatMessage("youre an ERROR to be corrected..") end},
+    {SoundId = 17837105249, Action = function() sendChatMessage("A MERE OBJECT...") end}
 )
             
         

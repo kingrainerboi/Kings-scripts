@@ -731,10 +731,32 @@ end
 local function Ult()
 	if not currentTarget or ultCooldown then return end
 	ultCooldown = true
+	local anger
+
+	if kelerEnabled then
+		anger = 76703090029553
+	else
+		anger = 116391592938524
+	end
+	
 	
 	playRandomSFX(
 		{SoundId = 103552223389683, Action = function() sendChatMessage("ENOUGH") end},
-		{SoundId = 89672861377061, Action = function() sendChatMessage("NOTHING BUT SCRAP") end}
+		{SoundId = 89672861377061, Action = function() sendChatMessage("NOTHING BUT SCRAP") end},
+		{SoundId = anger, Action = function()
+			if kelerEnabled then
+				sendChatMessage("IM GOING TO ULTRAKILL YOU")
+				task.wait(3)
+				sendChatMessage(" YOU INSIGNIFICANT")
+				task.wait(1.5)
+				sendChatMessage("#UCK")
+			else
+				sendChatMessage("IS THAT THE BEST YOU GOT") 
+				task.wait(2)
+				sendChatMessage("HAHAHA")
+			end
+		end}
+
 	)
 	local character = player.Character
 	local hrp = character and character:FindFirstChild("HumanoidRootPart")
