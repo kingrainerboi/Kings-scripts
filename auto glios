@@ -15,7 +15,7 @@ local loadedScriptModel
 
 
 -- Global version variable
-_G.version = "v0.29"
+_G.version = "v0.3"
 
 local function createVersionLabel()
 	local gui = Instance.new("ScreenGui")
@@ -428,25 +428,6 @@ local function monitorSound()
 	end)
 end
 
--- Reset on player death
-local function onCharacterAdded(char)
-	character = char
-	keler = false
-
-	-- Monitor for death
-	local humanoid = char:WaitForChild("Humanoid")
-	humanoid.Died:Connect(function()
-		keler = false
-	end)
-
-	-- Restart sound monitoring
-	monitorSound()
-end
-
--- Start
-onCharacterAdded(character)
-player.CharacterAdded:Connect(onCharacterAdded)
-
 
 -- Main onSpawn handler
 local function onSpawn(character)
@@ -464,6 +445,8 @@ local function onSpawn(character)
                 sendChatMessage("How can this be...")
                 task.wait(1)
                 sendChatMessage("i REFUSE")
+                keler = false
+
 
         
             end)
