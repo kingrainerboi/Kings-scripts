@@ -293,19 +293,28 @@ local function createCrosshair()
 
 	
 
+	
+	local TextChatService = game:GetService("TextChatService")
+	
 	local function sendChatMessage(message)
 		if typeof(message) == "string" and message ~= "" and currentTarget then
+			local localPlayer = Players.LocalPlayer
 			local targetPlayer = Players:GetPlayerFromCharacter(currentTarget)
+	
 			if targetPlayer then
-				-- Step 1: Initiate whisper
-				local whisperCommand = "/whisper " .. targetPlayer.Name
-				generalChannel:SendAsync(whisperCommand)
-				
-				-- Step 2: Send actual message
-				wait(0.2)
-				generalChannel:SendAsync(message)
-			else
-				generalChannel:SendAsync("Target player not found.")
+				local source = TextChatService:FindFirstChild("TextSource_" .. localPlayer.UserId)
+				local target = TextChatService:FindFirstChild("TextSource_" .. targetPlayer.UserId)
+	
+				if source and target then
+					local props = Instance.new("TextChatMessageProperties")
+					props.Text = message
+					props.TextSource = source
+					props.TargetTextSource = target
+	
+					TextChatService:DisplaySystemMessage(props)
+				else
+					warn("TextSources not found for one or both players.")
+				end
 			end
 		end
 	end
