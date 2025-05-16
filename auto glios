@@ -12,6 +12,7 @@ local activeSounds = {}
 
 local isEnabled = false
 local loadedScriptModel
+local kelerEnabled 
 
 
 -- Global version variable
@@ -411,21 +412,27 @@ end
 
 
 
-local keler = false
-local soundIdToWatch = "rbxassetid://18685115708"
-local lastDetected = nil
 
-RunService.RenderStepped:Connect(function()
-	for _, sound in ipairs(workspace:GetDescendants()) do
-		if sound:IsA("Sound") and sound.SoundId == soundIdToWatch then
-			if sound.IsPlaying and sound.TimePosition < 0.1 then
-				if lastDetected ~= sound then
-					keler = true
-					lastDetected = sound
-				end
-			end
-		end
-	end
+
+-- LocalScript B
+local RunService = game:GetService("RunService")
+local player = game.Players.LocalPlayer
+
+-- Wait for the GUI and Label to exist
+local function getLabel()
+	local gui = player:WaitForChild("PlayerGui"):WaitForChild("KelerGui")
+	return gui:WaitForChild("KelerStatus")
+end
+
+local label = getLabel()
+
+-- Monitor continuously
+RunService.Heartbeat:Connect(function()
+	local text = label.Text
+	kelerEnabled = (text == "true")
+
+	-- Do something with the value
+	print("Heartbeat check — kelerEnabled is:", kelerEnabled)
 end)
 
 -- Main onSpawn handler
@@ -444,8 +451,7 @@ local function onSpawn(character)
                 sendChatMessage("How can this be...")
                 task.wait(1)
                 sendChatMessage("i REFUSE")
-                keler = false
-
+                
 
         
             end)
@@ -471,7 +477,7 @@ local function onSpawn(character)
         wait(1.5)
         -- Run LieFlatAndFloat async
 
-        if not keler then
+        if not kelerEnabled then
             task.spawn(function()
                 LieFlatAndFloat(character, hrp, humanoid, 20, 5)
                 task.wait(2)
