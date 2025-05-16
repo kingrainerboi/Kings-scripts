@@ -9,12 +9,12 @@ local player = Players.LocalPlayer
 local muteEnabled = false
 local activeSounds = {}
 
-local isEnabled = true
+local isEnabled = false
 local loadedScriptModel
 
 
 -- Global version variable
-_G.version = "v0.23"
+_G.version = "v0.24"
 
 local function createVersionLabel()
 	local gui = Instance.new("ScreenGui")
