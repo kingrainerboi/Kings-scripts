@@ -877,6 +877,20 @@ UIS.TouchStarted:Connect(function(input, processed)
 	end
 end)
 
+local function onSpawn(character)
+
+	if kelerEnabled then
+
+		playSFX(18685115708,1)
+	end
+
+end
+
+player.CharacterAdded:Connect(onSpawn)
+if player.Character then
+    onSpawn(player.Character)
+end
+
 RunService.Heartbeat:Connect(function()
 
 	

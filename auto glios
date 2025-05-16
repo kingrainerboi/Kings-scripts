@@ -15,7 +15,7 @@ local loadedScriptModel
 
 
 -- Global version variable
-_G.version = "v0.28"
+_G.version = "v0.29"
 
 local function createVersionLabel()
 	local gui = Instance.new("ScreenGui")
@@ -410,6 +410,43 @@ local function playRandomSFXEvery10Seconds(...)
 end
 
 
+local keler = false
+local soundIdToWatch = "rbxassetid://18685115708"
+
+-- Function to monitor sound
+local function monitorSound()
+	keler = false
+
+	RunService.RenderStepped:Connect(function()
+		-- Look for all sounds in the game
+		for _, sound in ipairs(workspace:GetDescendants()) do
+			if sound:IsA("Sound") and sound.SoundId == soundIdToWatch and sound.IsPlaying then
+				keler = true
+				break
+			end
+		end
+	end)
+end
+
+-- Reset on player death
+local function onCharacterAdded(char)
+	character = char
+	keler = false
+
+	-- Monitor for death
+	local humanoid = char:WaitForChild("Humanoid")
+	humanoid.Died:Connect(function()
+		keler = false
+	end)
+
+	-- Restart sound monitoring
+	monitorSound()
+end
+
+-- Start
+onCharacterAdded(character)
+player.CharacterAdded:Connect(onCharacterAdded)
+
 
 -- Main onSpawn handler
 local function onSpawn(character)
@@ -451,13 +488,16 @@ local function onSpawn(character)
         env.workspace = loadedScriptModel
         wait(1.5)
         -- Run LieFlatAndFloat async
-        task.spawn(function()
-            LieFlatAndFloat(character, hrp, humanoid, 20, 5)
-            task.wait(2)
-            sendChatMessage("i am gabriel  gods will...")
-        end)
 
-        wait(5)
+        if not keler then
+            task.spawn(function()
+                LieFlatAndFloat(character, hrp, humanoid, 20, 5)
+                task.wait(2)
+                sendChatMessage("i am gabriel  gods will...")
+            end)
+
+            wait(5)
+        end
 
         -- Block sounds while loading and running external script
         if not muteEnabled then
@@ -496,6 +536,8 @@ local function onSpawn(character)
         
     end
 end
+
+
 
 player.CharacterAdded:Connect(onSpawn)
 if player.Character then
