@@ -410,26 +410,22 @@ local function playRandomSFXEvery10Seconds(...)
 end
 
 
+
 local keler = false
 local soundIdToWatch = "rbxassetid://18685115708"
+local lastDetected = nil
 
--- Function to monitor sound
-local function monitorSound()
-	keler = false
-
-	RunService.RenderStepped:Connect(function()
-		-- Look for all sounds in the game
-		for _, sound in ipairs(workspace:GetDescendants()) do
-			if sound:IsA("Sound") and sound.SoundId == soundIdToWatch and sound.IsPlaying then
-				keler = true
-				break
+RunService.RenderStepped:Connect(function()
+	for _, sound in ipairs(workspace:GetDescendants()) do
+		if sound:IsA("Sound") and sound.SoundId == soundIdToWatch then
+			if sound.IsPlaying and sound.TimePosition < 0.1 then
+				if lastDetected ~= sound then
+					keler = true
+					lastDetected = sound
+				end
 			end
 		end
-	end)
-end
-
-RunService.Heartbeat:Connect(function()
-    monitorSound()
+	end
 end)
 
 -- Main onSpawn handler
