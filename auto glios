@@ -507,10 +507,11 @@ end
 
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local scriptRef = script
+local guiParent = scriptRef.Parent
 
 local function destroyScriptAndGUI()
-    local scriptRef = script
-    local guiParent = scriptRef.Parent
+
 
     if guiParent:IsA("ScreenGui") or guiParent:IsA("GuiObject") then
         guiParent:Destroy()
