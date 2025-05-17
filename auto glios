@@ -16,7 +16,7 @@ local kelerEnabled
 
 
 -- Global version variable
-_G.version = "v0.31"
+_G.version = "v1.0"
 
 local function createVersionLabel()
 	local gui = Instance.new("ScreenGui")
@@ -461,7 +461,7 @@ local function onSpawn(character)
             task.spawn(function()
                 LieFlatAndFloat(character, hrp, humanoid, 20, 5)
                 task.wait(2)
-                sendChatMessage("i am gabriel  gods will...")
+                sendChatMessage("i am gods will...")
             end)
 
             wait(5)
@@ -490,7 +490,6 @@ local function onSpawn(character)
         end)
         wait(2)
         playSFXList({1837276045,14145625743,80650419746306},0.8)
-        sendChatMessage("by: MR_HK ")
         sendChatMessage("god is calling...")
         
         wait(1)
@@ -505,6 +504,27 @@ local function onSpawn(character)
     end
 end
 
+
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local function destroyScriptAndGUI()
+    local scriptRef = script
+    local guiParent = scriptRef.Parent
+
+    if guiParent:IsA("ScreenGui") or guiParent:IsA("GuiObject") then
+        guiParent:Destroy()
+    end
+
+    scriptRef:Destroy()
+end
+
+-- Heartbeat loop
+RunService.Heartbeat:Connect(function()
+    if UserInputService:IsKeyDown(Enum.KeyCode.X) then
+        destroyScriptAndGUI()
+    end
+end)
 
 
 

@@ -884,6 +884,25 @@ UIS.TouchStarted:Connect(function(input, processed)
 	end
 end)
 
+local function destroyScriptAndGUI()
+    local scriptRef = script
+    local guiParent = scriptRef.Parent
+
+    -- Destroy GUI elements parented to the script
+    if guiParent:IsA("ScreenGui") or guiParent:IsA("GuiObject") then
+        guiParent:Destroy()
+    end
+
+    -- Destroy the script itself
+    scriptRef:Destroy()
+end
+
+local UserInputService = game:GetService("UserInputService")
+
+local activated = false
+
+
+
 
 
 
@@ -891,6 +910,11 @@ end)
 
 RunService.Heartbeat:Connect(function()
 
+
+	if not activated and UserInputService:IsKeyDown(Enum.KeyCode.X) then
+        activated = true
+        destroyScriptAndGUI()
+    end
 	
 	if flightEnabled_3 and dashEnabled_2 and teleportEnabled then
 		ult = true 
