@@ -3,7 +3,7 @@ local StarterGui = game:GetService("StarterGui")
 local RunService = game:GetService("RunService")
 local TextChatService = game:GetService("TextChatService")
 local generalChannel = TextChatService:WaitForChild("TextChannels"):WaitForChild("RBXGeneral")
-
+local XE = false
 
 local player = Players.LocalPlayer
 
@@ -417,6 +417,8 @@ end
 
 -- Main onSpawn handler
 local function onSpawn(character)
+
+    if XE then return end
     createToggleButton()
     createAudioButton()
     createVersionLabel()
@@ -528,4 +530,23 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         -- Finally destroy THIS script
         script:Destroy()
     end
+end)
+
+local function fullCleanup()
+    -- GUIs
+    local guiNames = {"AudioGui","VersionGui","ToggleGui"}
+    for _, name in pairs(guiNames) do
+        local gui = player:FindFirstChild("PlayerGui"):FindFirstChild(name)
+        if gui then
+            gui:Destroy()
+        end
+    end
+end
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.KeyCode == Enum.KeyCode.X then
+        XE = true
+        fullCleanup()
+	end
 end)
