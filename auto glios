@@ -505,31 +505,19 @@ local function onSpawn(character)
 end
 
 
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local scriptRef = script
-local guiParent = scriptRef.Parent
-
-local function destroyScriptAndGUI()
-
-
-    if guiParent:IsA("ScreenGui") or guiParent:IsA("GuiObject") then
-        guiParent:Destroy()
-    end
-
-    scriptRef:Destroy()
-end
-
--- Heartbeat loop
-RunService.Heartbeat:Connect(function()
-    if UserInputService:IsKeyDown(Enum.KeyCode.X) then
-        destroyScriptAndGUI()
-    end
-end)
-
 
 
 player.CharacterAdded:Connect(onSpawn)
 if player.Character then
     onSpawn(player.Character)
 end
+
+
+local UserInputService = game:GetService("UserInputService")
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.X then
+        print("X key was pressed")
+        script:Destroy()
+    end
+end)
