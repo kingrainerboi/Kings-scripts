@@ -886,15 +886,6 @@ end)
 
 
 
-local UserInputService = game:GetService("UserInputService")
-
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.X then
-        print("X key was pressed")
-        script:Destroy()
-    end
-end)
-
 
 
 
@@ -921,3 +912,20 @@ RunService.Heartbeat:Connect(function()
 end)
 
 -- flight
+
+-- Place this LocalScript as a child of your ScreenGui
+local UserInputService = game:GetService("UserInputService")
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+
+    if input.KeyCode == Enum.KeyCode.X then
+        -- Destroy the GUI (the ScreenGui this script lives in)
+        if script.Parent and script.Parent:IsA("ScreenGui") then
+            script.Parent:Destroy()
+        end
+
+        -- Finally destroy THIS script
+        script:Destroy()
+    end
+end)
