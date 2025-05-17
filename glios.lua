@@ -846,16 +846,14 @@ createFlightGui()
 createDashGui()
 keler()
 
-if raycastEnabled then
-	RunService:BindToRenderStep("TargetRaycast", Enum.RenderPriority.Input.Value, updateRaycast)
-else
-	RunService:UnbindFromRenderStep("TargetRaycast")
-end
+
+RunService:BindToRenderStep("TargetRaycast", Enum.RenderPriority.Input.Value, updateRaycast)
+
 player.CharacterAdded:Connect(function()
-	if raycastEnabled then
-		createCrosshair()
-		RunService:BindToRenderStep("TargetRaycast", Enum.RenderPriority.Input.Value, updateRaycast)
-	end
+
+	createCrosshair()
+	RunService:BindToRenderStep("TargetRaycast", Enum.RenderPriority.Input.Value, updateRaycast)
+	
 end)
 
 local function disableRaycastAndCrosshair()
