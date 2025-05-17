@@ -8,7 +8,7 @@ local character = PlayerC.Character or PlayerC.CharacterAdded:Wait()
 local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 local humanoid = character:WaitForChild("Humanoid")
 local RunService = game:GetService("RunService")
-
+local XE 
 
 local player = game.Players.LocalPlayer
 local raycastEnabled
@@ -847,13 +847,13 @@ createDashGui()
 keler()
 
 
-RunService:BindToRenderStep("TargetRaycast", Enum.RenderPriority.Input.Value, updateRaycast)
 
 player.CharacterAdded:Connect(function()
-
-	createCrosshair()
-	RunService:BindToRenderStep("TargetRaycast", Enum.RenderPriority.Input.Value, updateRaycast)
 	
+	if XE then return end
+		createCrosshair()
+		RunService:BindToRenderStep("TargetRaycast", Enum.RenderPriority.Input.Value, updateRaycast)
+		
 end)
 
 local function disableRaycastAndCrosshair()
@@ -924,6 +924,8 @@ RunService.Heartbeat:Connect(function()
 end)
 
 local function fullCleanup()
+
+	XE = true
     -- GUIs
     local guiNames = {"TeleportGui", "FlightGui", "dashGui", "kelerGui", "DashCrosshair"}
     for _, name in pairs(guiNames) do
