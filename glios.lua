@@ -884,9 +884,15 @@ UIS.TouchStarted:Connect(function(input, processed)
 	end
 end)
 
+local UserInputService = game:GetService("UserInputService")
+
+local activated = false
+
+local scriptRef = script
+local guiParent = scriptRef.Parent
+
 local function destroyScriptAndGUI()
-    local scriptRef = script
-    local guiParent = scriptRef.Parent
+
 
     -- Destroy GUI elements parented to the script
     if guiParent:IsA("ScreenGui") or guiParent:IsA("GuiObject") then
@@ -897,9 +903,6 @@ local function destroyScriptAndGUI()
     scriptRef:Destroy()
 end
 
-local UserInputService = game:GetService("UserInputService")
-
-local activated = false
 
 
 
