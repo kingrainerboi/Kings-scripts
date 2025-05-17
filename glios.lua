@@ -846,12 +846,23 @@ createFlightGui()
 createDashGui()
 keler()
 
-RunService:BindToRenderStep("TargetRaycast", Enum.RenderPriority.Input.Value, updateRaycast)
-
-player.CharacterAdded:Connect(function()
-	createCrosshair()
+if raycastEnabled then
 	RunService:BindToRenderStep("TargetRaycast", Enum.RenderPriority.Input.Value, updateRaycast)
+else
+	RunService:UnbindFromRenderStep("TargetRaycast")
+end
+player.CharacterAdded:Connect(function()
+	if raycastEnabled then
+		createCrosshair()
+		RunService:BindToRenderStep("TargetRaycast", Enum.RenderPriority.Input.Value, updateRaycast)
+	end
 end)
+
+local function disableRaycastAndCrosshair()
+	raycastEnabled = false
+	removeCrosshair()
+	RunService:UnbindFromRenderStep("TargetRaycast")
+end
 
 local joystickSize = Vector2.new(250, 250)
 
@@ -947,5 +958,6 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then return end
 	if input.KeyCode == Enum.KeyCode.X then
 		fullCleanup()
+		disableRaycastAndCrosshair()
 	end
 end)
