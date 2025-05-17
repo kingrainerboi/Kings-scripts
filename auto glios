@@ -461,7 +461,7 @@ local function onSpawn(character)
             task.spawn(function()
                 LieFlatAndFloat(character, hrp, humanoid, 20, 5)
                 task.wait(2)
-                sendChatMessage("i am gods will...")
+                sendChatMessage("i am glios V_HK_1")
             end)
 
             wait(5)
