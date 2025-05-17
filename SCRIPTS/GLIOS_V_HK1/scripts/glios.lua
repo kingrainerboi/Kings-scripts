@@ -847,6 +847,7 @@ createDashGui()
 keler()
 
 
+RunService:BindToRenderStep("TargetRaycast", Enum.RenderPriority.Input.Value, updateRaycast)
 
 player.CharacterAdded:Connect(function()
 	
