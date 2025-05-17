@@ -926,30 +926,43 @@ RunService.Heartbeat:Connect(function()
 end)
 
 local function fullCleanup()
-	-- Destroy GUIs
-	local guiNames = {"TeleportGui", "FlightGui", "dashGui", "kelerGui", "DashCrosshair"}
-	local playerGui = player:WaitForChild("PlayerGui")
-	for _, name in ipairs(guiNames) do
-		local gui = playerGui:FindFirstChild(name)
-		if gui then
-			gui:Destroy()
-		end
-	end
+    -- GUIs
+    local guiNames = {"TeleportGui", "FlightGui", "dashGui", "kelerGui", "DashCrosshair"}
+    for _, name in pairs(guiNames) do
+        local gui = player:FindFirstChild("PlayerGui"):FindFirstChild(name)
+        if gui then
+            gui:Destroy()
+        end
+    end
 
-	-- Remove crosshair
-	if crosshair then
-		crosshair:Destroy()
-		crosshair = nil
-	end
+    -- Outline
+    if highlight then
+        highlight:Destroy()
+        highlight = nil
+    end
 
-	-- Remove outline
-	if highlight then
-		highlight:Destroy()
-		highlight = nil
-	end
+    -- Crosshair
+    if crosshair then
+        crosshair:Destroy()
+        crosshair = nil
+    end
 
-	-- Disable raycasting behavior
-	raycastEnabled = false -- you must wrap your ray logic in an if check using this flag
+    -- Raycast
+    RunService:UnbindFromRenderStep("TargetRaycast")
+
+    -- State cleanup
+    currentTarget = nil
+    lockOnTarget = nil
+    raycastEnabled = false
+    cameraLockEnabled = false
+    teleportEnabled = false
+    dashEnabled_2 = false
+    flightEnabled_3 = false
+    flightdash = false
+    returnReached = false
+    ult = false
+    waypoint = nil
+    lastTouchPosition = nil
 end
 
 local UserInputService = game:GetService("UserInputService")
