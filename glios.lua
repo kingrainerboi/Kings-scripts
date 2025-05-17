@@ -11,7 +11,7 @@ local RunService = game:GetService("RunService")
 
 
 local player = game.Players.LocalPlayer
-
+local raycastEnabled
 local cameraLockEnabled = false
 local CAMERA_LOCK_NAME = "SoftCameraLock"
 
@@ -232,6 +232,7 @@ local function createCrosshair()
 	
 	end
 	
+	
 	local function removeCrosshair()
 	if crosshair then
 	crosshair:Destroy()
@@ -356,31 +357,33 @@ local function createCrosshair()
 
 	-- RAYCAST DETECTION
 	local function updateRaycast()
-	local character = player.Character
-	if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-	
-	local origin = Camera.CFrame.Position  
-	local rayParams = RaycastParams.new()  
-	rayParams.FilterType = Enum.RaycastFilterType.Exclude  
-	rayParams.FilterDescendantsInstances = {character}  
-	rayParams.IgnoreWater = true  
-	
-	for _, direction in ipairs(getRayDirections()) do  
-		local result = workspace:Raycast(origin, direction * RAY_DISTANCE, rayParams)  
-	
-		if result and result.Instance then  
-			local hitCharacter = result.Instance:FindFirstAncestorOfClass("Model")  
-			local hitPlayer = Players:GetPlayerFromCharacter(hitCharacter)  
-	
-			if hitPlayer and hitPlayer ~= player then  
-				if currentTarget ~= hitCharacter then  
-					currentTarget = hitCharacter  
-					createOutline(currentTarget)  
-					enableCameraLock()
+		
+		
+		local character = player.Character
+		if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+		
+		local origin = Camera.CFrame.Position  
+		local rayParams = RaycastParams.new()  
+		rayParams.FilterType = Enum.RaycastFilterType.Exclude  
+		rayParams.FilterDescendantsInstances = {character}  
+		rayParams.IgnoreWater = true  
+		
+		for _, direction in ipairs(getRayDirections()) do  
+			local result = workspace:Raycast(origin, direction * RAY_DISTANCE, rayParams)  
+		
+			if result and result.Instance then  
+				local hitCharacter = result.Instance:FindFirstAncestorOfClass("Model")  
+				local hitPlayer = Players:GetPlayerFromCharacter(hitCharacter)  
+		
+				if hitPlayer and hitPlayer ~= player then  
+					if currentTarget ~= hitCharacter then  
+						currentTarget = hitCharacter  
+						createOutline(currentTarget)  
+						enableCameraLock()
+					end  
+					return  
 				end  
-				return  
 			end  
-		end  
 	end  
 	
 	currentTarget = nil  
@@ -911,21 +914,38 @@ RunService.Heartbeat:Connect(function()
 	
 end)
 
--- flight
+local function fullCleanup()
+	-- Destroy GUIs
+	local guiNames = {"TeleportGui", "FlightGui", "dashGui", "kelerGui", "DashCrosshair"}
+	local playerGui = player:WaitForChild("PlayerGui")
+	for _, name in ipairs(guiNames) do
+		local gui = playerGui:FindFirstChild(name)
+		if gui then
+			gui:Destroy()
+		end
+	end
 
--- Place this LocalScript as a child of your ScreenGui
+	-- Remove crosshair
+	if crosshair then
+		crosshair:Destroy()
+		crosshair = nil
+	end
+
+	-- Remove outline
+	if highlight then
+		highlight:Destroy()
+		highlight = nil
+	end
+
+	-- Disable raycasting behavior
+	raycastEnabled = false -- you must wrap your ray logic in an if check using this flag
+end
+
 local UserInputService = game:GetService("UserInputService")
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-
-    if input.KeyCode == Enum.KeyCode.X then
-        -- Destroy the GUI (the ScreenGui this script lives in)
-        if script.Parent and script.Parent:IsA("ScreenGui") then
-            script.Parent:Destroy()
-        end
-
-        -- Finally destroy THIS script
-        script:Destroy()
-    end
+	if gameProcessed then return end
+	if input.KeyCode == Enum.KeyCode.X then
+		fullCleanup()
+	end
 end)
