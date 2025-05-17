@@ -1,7 +1,8 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
-
+local TextChatService = game:GetService("TextChatService")
+local generalChannel = TextChatService:WaitForChild("TextChannels"):WaitForChild("RBXGeneral")
 -- SETTINGS
 local BASE_SPEED = 18
 local BASE_RADIUS = 100
@@ -75,7 +76,7 @@ local function createToggleGui()
 
 	mainButton.MouseButton1Click:Connect(function()
 		isActive = not isActive
-		mainButton.Text = "Hungry Guy: " .. (isActive and "ON" or "OFF")
+		mainButton.Text = "bRaINZ: " .. (isActive and "ON" or "OFF")
 		if not isActive then
 			for _, h in pairs(highlights) do h:Destroy() end
 			highlights = {}
@@ -104,6 +105,61 @@ local function removeAllHighlights()
 	highlights = {}
 end
 
+local function sendChatMessage(message)
+    if typeof(message) == "string" and message ~= "" then
+        local symbols = {"!", "?", "@", "#", "$", "%", "&"}
+        local words = {}
+
+        -- Split the message into words
+        for word in message:gmatch("%S+") do
+            table.insert(words, word)
+        end
+
+        -- Rebuild message with random symbols between words
+        local randomizedMessage = ""
+        for i, word in ipairs(words) do
+            randomizedMessage = randomizedMessage .. word
+            if i < #words then
+                -- Add a random symbol + a space
+                randomizedMessage = randomizedMessage .. symbols[math.random(#symbols)] .. " "
+            end
+        end
+
+        generalChannel:SendAsync(randomizedMessage)
+        print("Sent message: " .. randomizedMessage)
+    end
+end
+
+local function playRandomSFXEvery10Seconds(...)
+	local soundData = {...}
+	local player = Players.LocalPlayer
+	local character = player.Character or player.CharacterAdded:Wait()
+	local hrp = character:WaitForChild("HumanoidRootPart")
+
+	task.spawn(function()
+		while true do
+			task.wait(30 + math.random()) -- ~10 seconds with slight randomness
+
+			if #soundData > 0 then
+				local randomEntry = soundData[math.random(1, #soundData)]
+				local sound = Instance.new("Sound")
+				sound.SoundId = "rbxassetid://" .. tostring(randomEntry.SoundId)
+				sound.Parent = hrp
+				sound.Volume = 1
+				sound:Play()
+
+				-- Run action if present and a function
+				if randomEntry.Action and typeof(randomEntry.Action) == "function" then
+					randomEntry.Action()
+				end
+
+				sound.Ended:Connect(function()
+					sound:Destroy()
+				end)
+			end
+		end
+	end)
+end
 -- FIND TARGETS
 local function getTargets(radius)
 	local visibleTargets = {}
@@ -194,3 +250,5 @@ end)
 
 -- INIT GUI
 createToggleGui()
+
+playRandomSFXEvery10Seconds({SoundId = 7890100316, Action = function() sendChatMessage("BRAINZ") end})
