@@ -534,7 +534,7 @@ end)
 
 local function fullCleanup()
     -- GUIs
-    local guiNames = {"AudioGui","VersionGui","ToggleGui"}
+    local guiNames = {"AudioGui","VersionGui","ToggleGui","AudioGui"}
     for _, name in pairs(guiNames) do
         local gui = player:FindFirstChild("PlayerGui"):FindFirstChild(name)
         if gui then
